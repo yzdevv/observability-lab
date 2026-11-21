@@ -1,3 +1,7 @@
 packages:
   - apps/gateway
   - apps/order-node
+  - packages/telemetry
+allowBuilds:
+  # only a postinstall version check; not needed
+  protobufjs: false
