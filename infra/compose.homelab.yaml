@@ -16,3 +16,14 @@ services:
   worker-node: *slice
   order-api-go: *slice
   worker-go: *slice
+  otel-collector: *slice
+  tempo:
+    <<: *slice
+    volumes: !override
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+      - /opt/homelab/lab-data/observability-lab/tempo:/var/tempo
+  grafana:
+    <<: *slice
+    volumes: !override
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - /opt/homelab/lab-data/observability-lab/grafana:/var/lib/grafana

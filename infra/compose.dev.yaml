@@ -1,8 +1,15 @@
-# Local development on the Mac: publish the gateway on loopback only, and relax the
-# per-IP rate limit so the contract tests can run repeatedly.
+# Local development on the Mac: publish ports on loopback only, and relax the per-IP rate limit
+# and host-load guard so tests and a busy Mac do not trip them.
 services:
   gateway:
     ports: ["127.0.0.1:8088:8080"]
     environment:
       RATE_LIMIT_PER_MIN: "300"
       MAX_LOAD1: "16"
+  tempo:
+    ports: ["127.0.0.1:3200:3200"]   # trace API, used by the tracing tests
+  grafana:
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
