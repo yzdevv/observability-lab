@@ -39,22 +39,25 @@ Every service has `mem_limit`, `cpus`, `pids_limit`, `cpu_shares: 256` (default 
 | Service | Memory | CPUs |
 |---|---|---|
 | postgres | 256m | 0.75 |
-| redis | 64m | 0.25 |
+| redis | 96m | 0.25 |
 | gateway | 128m | 0.5 |
 | order-api-node | 128m | 0.5 |
 | worker-node | 128m | 0.5 |
-| order-api-go | 64m | 0.5 |
-| worker-go | 64m | 0.5 |
+| order-api-go | 128m | 0.5 |
+| worker-go | 128m | 0.5 |
 | otel-collector | 192m | 0.5 |
 | tempo | 512m | 0.5 |
 | prometheus | 384m | 0.5 |
 | loki | 384m | 0.5 |
 | grafana | 256m | 0.5 |
 | lab-web | 32m | 0.25 |
-| **Sum of limits** | **~2.6 GB** | |
+| **Sum of limits** | **~2.7 GB** | |
 
 The per-container CPU limits add up to more than 2 on purpose; the slice caps the total. Node and
 Go get identical limits so comparisons are fair.
+
+Measured at idle on the Mac (Milestone A): order-api-go 7 MiB, worker-go 7 MiB, order-api-node
+65 MiB, worker-node 32 MiB, gateway 39 MiB, Postgres 63 MiB, Redis 40 MiB.
 
 ## Layer 3 — application guards (gateway)
 
@@ -65,7 +68,7 @@ telemetry ("load shedding" is itself part of the demo).
 |---|---|---|
 | Per-IP rate limit (`CF-Connecting-IP`) | 20 requests / minute | `429` |
 | Global in-flight requests | 20 | `503 reason=inflight` |
-| Host load (`/proc/loadavg`, 1-min) | > 4.0 (half the threads) | `503 reason=host-load` |
+| Host load (`/proc/loadavg`, 1-min) | > half the host's threads (4.0 on the server) | `503 reason=host-load` |
 | Queue backlog (pending + lag of the chosen stream) | > 500 | `503 reason=backlog` |
 | Upstream timeout | 5 s | `504` |
 | Request body | 4 KB | `413` |

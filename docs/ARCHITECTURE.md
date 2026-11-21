@@ -132,5 +132,8 @@ tunnel. In local development the gateway is published on `127.0.0.1:8088`.
   The fix is a transactional outbox; it may become its own experiment.
 - **At-least-once delivery**: a crash between update and `XACK` redelivers; the update is guarded
   (`WHERE status = 'queued'`) so it is idempotent.
+- **Redis has no persistence**: a Redis restart drops undelivered stream entries, so those orders
+  stay `queued`. Workers recreate their consumer group automatically (`NOGROUP` → create). A sweeper
+  that re-enqueues old `queued` orders, or turning on AOF, would close the gap; a candidate experiment.
 - **No auth on the order API**: it is a demo with synthetic data; protection is rate limits and
   periodic data reset, not user accounts.

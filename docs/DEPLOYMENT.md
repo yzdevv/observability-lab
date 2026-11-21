@@ -34,8 +34,14 @@ Requirements: Docker Desktop, Node 24, pnpm, Go 1.26.
 
 ```sh
 docker compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
+pnpm install                  # once, for the contract tests and typecheck
 ./scripts/smoke.sh            # creates an order via node and go, waits for completed
+pnpm test:contract            # API contract, run against both implementations
+pnpm typecheck                # Node services; for Go: (cd apps/order-go && go vet ./...)
 ```
+
+The dev override raises the per-IP rate limit (300/min) and the host-load threshold (16) so tests
+and a busy Mac do not trip the guards.
 
 - Gateway: `http://127.0.0.1:8088`
 - Grafana: `http://127.0.0.1:3000` (from Milestone B)
