@@ -7,7 +7,12 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const maxBodyBytes = 4096
@@ -19,8 +24,10 @@ func runAPI(ctx context.Context, s *Service) error {
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 
 	srv := &http.Server{
-		Addr:              ":" + s.cfg.Port,
-		Handler:           logRequests(mux),
+		Addr: ":" + s.cfg.Port,
+		Handler: otelhttp.NewHandler(logRequests(mux), "http.server",
+			// Health checks run every few seconds; tracing them would bury the interesting traces.
+			otelhttp.WithFilter(func(r *http.Request) bool { return r.URL.Path != "/healthz" })),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -59,15 +66,21 @@ func (s *Service) handleCreateOrder(w http.ResponseWriter, r *http.Request) {
 		writeError(w, r, badRequest("body must be a JSON object with productId, quantity (integer) and scenario"))
 		return
 	}
-	if err := in.validate(); err != nil {
+	_, err := withSpan(r.Context(), "order.validate", func(context.Context, trace.Span) (struct{}, error) {
+		return struct{}{}, in.validate()
+	})
+	if err != nil {
 		writeError(w, r, err)
 		return
 	}
+	span := trace.SpanFromContext(r.Context())
+	span.SetAttributes(attribute.String("lab.impl", impl), attribute.String("lab.scenario", in.Scenario))
 	res, err := s.createOrder(r.Context(), in)
 	if err != nil {
 		writeError(w, r, err)
 		return
 	}
+	span.SetAttributes(attribute.String("order.id", res.OrderID))
 	writeJSON(w, http.StatusAccepted, res)
 }
 
@@ -106,7 +119,7 @@ func writeError(w http.ResponseWriter, r *http.Request, err error) {
 		writeJSON(w, he.status, map[string]string{"error": he.msg})
 		return
 	}
-	slog.Error("unhandled error", "method", r.Method, "path", r.URL.Path, "err", err)
+	slog.ErrorContext(r.Context(), "unhandled error", "method", r.Method, "path", r.URL.Path, "err", err)
 	writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
 }
 
@@ -120,12 +133,27 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
+// logRequests logs each request, returns the trace id to the client, and names the server span
+// after the matched route (r.Pattern is set by ServeMux while routing).
 func logRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		span := trace.SpanFromContext(r.Context())
+		if sc := span.SpanContext(); sc.IsValid() {
+			w.Header().Set("X-Trace-Id", sc.TraceID().String())
+		}
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
-		slog.Info("request completed",
+		if r.Pattern != "" {
+			span.SetName(r.Pattern)
+			if _, route, ok := strings.Cut(r.Pattern, " "); ok {
+				span.SetAttributes(attribute.String("http.route", route))
+			}
+		}
+		if r.URL.Path == "/healthz" {
+			return
+		}
+		slog.InfoContext(r.Context(), "request completed",
 			"method", r.Method, "path", r.URL.Path, "status", rec.status,
 			"durationMs", float64(time.Since(start).Microseconds())/1000)
 	})

@@ -11,6 +11,10 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func runWorker(ctx context.Context, s *Service) error {
@@ -75,29 +79,52 @@ func (s *Service) ensureGroup(ctx context.Context, stream string) error {
 
 func (s *Service) processMessage(ctx context.Context, stream string, msg redis.XMessage) {
 	start := time.Now()
-	orderID, _ := msg.Values["orderId"].(string)
+	field := func(name string) string { v, _ := msg.Values[name].(string); return v }
+	orderID := field("orderId")
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	fail := func(err error) {
-		// Left unacked: stays in the pending list (reclaimed in Milestone D).
-		slog.Error("order processing failed", "orderId", orderID, "entryId", msg.ID, "err", err)
-	}
-	if orderID == "" {
-		fail(errors.New("message without orderId"))
-		return
-	}
+	// Continue the trace started by the HTTP request that enqueued this order.
+	carrier := propagation.MapCarrier{"traceparent": field("traceparent"), "tracestate": field("tracestate")}
+	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	attempt := 1
+	fmt.Sscan(field("attempt"), &attempt)
 
-	time.Sleep(s.cfg.Work) // simulated work, identical in both implementations
-	updated, err := s.completeOrder(ctx, orderID)
+	_, err := withSpan(ctx, "order.process", func(ctx context.Context, span trace.Span) (struct{}, error) {
+		if orderID == "" {
+			return struct{}{}, errors.New("message without orderId")
+		}
+		// Simulated work, identical in both implementations.
+		_, _ = withSpan(ctx, "order.fulfil", func(context.Context, trace.Span) (struct{}, error) {
+			time.Sleep(s.cfg.Work)
+			return struct{}{}, nil
+		}, trace.WithAttributes(attribute.Bool("lab.simulated", true)))
+
+		updated, err := s.completeOrder(ctx, orderID)
+		if err != nil {
+			return struct{}{}, err
+		}
+		span.SetAttributes(attribute.Bool("order.updated", updated))
+		if err := s.rdb.XAck(ctx, stream, consumerGroup, msg.ID).Err(); err != nil {
+			return struct{}{}, fmt.Errorf("ack: %w", err)
+		}
+		slog.InfoContext(ctx, "order processed", "orderId", orderID, "entryId", msg.ID, "updated", updated,
+			"durationMs", time.Since(start).Milliseconds())
+		return struct{}{}, nil
+	},
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(
+			attribute.String("order.id", orderID),
+			attribute.String("lab.impl", impl),
+			attribute.String("lab.scenario", field("scenario")),
+			attribute.Int("lab.attempt", attempt),
+			attribute.String("messaging.system", "redis"),
+			attribute.String("messaging.operation.type", "process"),
+			attribute.String("messaging.destination.name", stream),
+			attribute.String("messaging.message.id", msg.ID),
+		))
 	if err != nil {
-		fail(err)
-		return
+		// Left unacked: stays in the pending list (reclaimed in Milestone D).
+		slog.ErrorContext(ctx, "order processing failed", "orderId", orderID, "entryId", msg.ID, "err", err)
 	}
-	if err := s.rdb.XAck(ctx, stream, consumerGroup, msg.ID).Err(); err != nil {
-		fail(fmt.Errorf("ack: %w", err))
-		return
-	}
-	slog.Info("order processed", "orderId", orderID, "entryId", msg.ID, "updated", updated,
-		"durationMs", time.Since(start).Milliseconds())
 }

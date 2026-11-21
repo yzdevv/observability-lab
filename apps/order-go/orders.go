@@ -13,6 +13,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Scenarios handled by the order API. Worker scenarios arrive in later milestones.
@@ -69,30 +73,34 @@ type product struct {
 }
 
 func (s *Service) getProduct(ctx context.Context, id, scenario string) (product, error) {
-	var p product
-	key := productKey(id)
-	if scenario != "cache-miss" {
-		cached, err := s.rdb.Get(ctx, key).Result()
-		if err == nil && json.Unmarshal([]byte(cached), &p) == nil {
-			return p, nil
+	return withSpan(ctx, "product.lookup", func(ctx context.Context, span trace.Span) (product, error) {
+		var p product
+		key := productKey(id)
+		if scenario != "cache-miss" {
+			cached, err := s.rdb.Get(ctx, key).Result()
+			if err == nil && json.Unmarshal([]byte(cached), &p) == nil {
+				span.SetAttributes(attribute.Bool("cache.hit", true))
+				return p, nil
+			}
+			if err != nil && !errors.Is(err, redis.Nil) {
+				return p, fmt.Errorf("cache get: %w", err)
+			}
 		}
-		if err != nil && !errors.Is(err, redis.Nil) {
-			return p, fmt.Errorf("cache get: %w", err)
+		span.SetAttributes(attribute.Bool("cache.hit", false), attribute.Bool("cache.skipped", scenario == "cache-miss"))
+		err := s.db.QueryRow(ctx, `SELECT id, name, price_cents FROM products WHERE id = $1`, id).
+			Scan(&p.ID, &p.Name, &p.PriceCents)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return p, &httpError{status: 404, msg: "unknown product " + id}
 		}
-	}
-	err := s.db.QueryRow(ctx, `SELECT id, name, price_cents FROM products WHERE id = $1`, id).
-		Scan(&p.ID, &p.Name, &p.PriceCents)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return p, &httpError{status: 404, msg: "unknown product " + id}
-	}
-	if err != nil {
-		return p, fmt.Errorf("select product: %w", err)
-	}
-	encoded, _ := json.Marshal(p)
-	if err := s.rdb.Set(ctx, key, encoded, s.cfg.ProductCacheTTL).Err(); err != nil {
-		return p, fmt.Errorf("cache set: %w", err)
-	}
-	return p, nil
+		if err != nil {
+			return p, fmt.Errorf("select product: %w", err)
+		}
+		encoded, _ := json.Marshal(p)
+		if err := s.rdb.Set(ctx, key, encoded, s.cfg.ProductCacheTTL).Err(); err != nil {
+			return p, fmt.Errorf("cache set: %w", err)
+		}
+		return p, nil
+	}, trace.WithAttributes(attribute.String("product.id", id)))
 }
 
 // The delay for slow-db is part of the INSERT itself, so the slow span is the real query.
@@ -117,20 +125,47 @@ func (s *Service) createOrder(ctx context.Context, in createOrderInput) (createO
 	if in.Scenario == "slow-db" {
 		delay = s.cfg.SlowDB.Seconds()
 	}
-	if _, err := s.db.Exec(ctx, insertOrderSQL,
-		orderID, p.ID, in.Quantity, p.PriceCents, impl, in.Scenario, delay); err != nil {
-		return createOrderResult{}, fmt.Errorf("insert order: %w", err)
+	_, err = withSpan(ctx, "order.persist", func(ctx context.Context, _ trace.Span) (struct{}, error) {
+		_, err := s.db.Exec(ctx, insertOrderSQL,
+			orderID, p.ID, in.Quantity, p.PriceCents, impl, in.Scenario, delay)
+		if err != nil {
+			return struct{}{}, fmt.Errorf("insert order: %w", err)
+		}
+		return struct{}{}, nil
+	}, trace.WithAttributes(attribute.String("order.id", orderID)))
+	if err != nil {
+		return createOrderResult{}, err
 	}
 
 	// Not atomic with the insert: if this fails the order stays queued (see ARCHITECTURE.md).
-	err = s.rdb.XAdd(ctx, &redis.XAddArgs{
-		Stream: streamKey(),
-		MaxLen: s.cfg.StreamMaxLen,
-		Approx: true,
-		Values: []any{"orderId", orderID, "scenario", in.Scenario, "attempt", "1", "traceparent", ""},
-	}).Err()
+	_, err = withSpan(ctx, "order.enqueue", func(ctx context.Context, span trace.Span) (struct{}, error) {
+		// The worker continues this trace from the traceparent carried in the message.
+		carrier := propagation.MapCarrier{}
+		otel.GetTextMapPropagator().Inject(ctx, carrier)
+		entryID, err := s.rdb.XAdd(ctx, &redis.XAddArgs{
+			Stream: streamKey(),
+			MaxLen: s.cfg.StreamMaxLen,
+			Approx: true,
+			Values: []any{
+				"orderId", orderID, "scenario", in.Scenario, "attempt", "1",
+				"traceparent", carrier.Get("traceparent"), "tracestate", carrier.Get("tracestate"),
+			},
+		}).Result()
+		if err != nil {
+			return struct{}{}, fmt.Errorf("enqueue order: %w", err)
+		}
+		span.SetAttributes(attribute.String("messaging.message.id", entryID))
+		return struct{}{}, nil
+	},
+		trace.WithSpanKind(trace.SpanKindProducer),
+		trace.WithAttributes(
+			attribute.String("order.id", orderID),
+			attribute.String("messaging.system", "redis"),
+			attribute.String("messaging.operation.type", "send"),
+			attribute.String("messaging.destination.name", streamKey()),
+		))
 	if err != nil {
-		return createOrderResult{}, fmt.Errorf("enqueue order: %w", err)
+		return createOrderResult{}, err
 	}
 	return createOrderResult{OrderID: orderID, Impl: impl, Status: "queued"}, nil
 }

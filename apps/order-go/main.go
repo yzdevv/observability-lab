@@ -9,7 +9,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -35,16 +37,28 @@ func run() error {
 	if cfg.Mode == "worker" {
 		service = "worker-go"
 	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)).With("service", service, "impl", impl))
+	slog.SetDefault(slog.New(traceLogHandler{slog.NewJSONHandler(os.Stdout, nil)}).With("service", service, "impl", impl))
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	shutdownTelemetry, err := setupTelemetry(ctx)
+	if err != nil {
+		return fmt.Errorf("telemetry: %w", err)
+	}
+	defer func() {
+		// Flush buffered spans; the signal context is already cancelled at this point.
+		flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = shutdownTelemetry(flushCtx)
+	}()
 
 	poolCfg, err := pgxpool.ParseConfig(cfg.DatabaseURL)
 	if err != nil {
 		return fmt.Errorf("parse DATABASE_URL: %w", err)
 	}
 	poolCfg.MaxConns = cfg.DBPoolMax
+	poolCfg.ConnConfig.Tracer = otelpgx.NewTracer()
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return fmt.Errorf("connect postgres: %w", err)
@@ -56,6 +70,7 @@ func run() error {
 		return fmt.Errorf("parse REDIS_URL: %w", err)
 	}
 	rdb := redis.NewClient(redisOpts)
+	rdb.AddHook(redisTracingHook{addr: redisOpts.Addr})
 	defer rdb.Close()
 
 	svc := &Service{cfg: cfg, db: db, rdb: rdb}
