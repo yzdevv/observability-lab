@@ -1,6 +1,8 @@
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { Redis } from 'ioredis';
+import { trace } from '@opentelemetry/api';
+import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPLS, config, type Impl } from './config.ts';
 import { INFLIGHT_REFUSAL, Inflight, checkGuards, createBacklogReaders, hostLoad1, type GuardVerdict } from './guards.ts';
 
@@ -9,9 +11,11 @@ const backlog = createBacklogReaders(redis);
 const inflight = new Inflight();
 
 const app = Fastify({
-  logger: { base: { service: 'gateway' } },
+  logger: { base: { service: 'gateway' }, mixin: traceLogFields },
   bodyLimit: 4096,
 });
+
+app.addHook('onRequest', routeSpanHook);
 
 // Behind Cloudflare the real client is in CF-Connecting-IP; elsewhere use the socket address.
 function clientIp(req: FastifyRequest): string {
@@ -74,14 +78,20 @@ app.post<{ Params: { impl: Impl }; Body: Record<string, unknown> }>(
   },
   async (req, reply) => {
     const { impl } = req.params;
+    trace.getActiveSpan()?.setAttribute('lab.impl', impl);
     const shed = (verdict: Exclude<GuardVerdict, { ok: true }>) => {
+      trace.getActiveSpan()?.setAttribute('lab.shed_reason', verdict.reason);
       req.log.warn({ impl, reason: verdict.reason }, 'request shed by guard');
       return reply.code(503).header('retry-after', '5').send({ error: verdict.message, reason: verdict.reason });
     };
 
     if (!inflight.tryAcquire()) return shed(INFLIGHT_REFUSAL);
     try {
-      const verdict = await checkGuards(impl, backlog);
+      const verdict = await withSpan('gateway.guards', {}, async (span) => {
+        const result = await checkGuards(impl, backlog);
+        span.setAttribute('lab.guard.passed', result.ok);
+        return result;
+      });
       if (!verdict.ok) return shed(verdict);
 
       // Forward only the fields in the contract; the order API validates them.
@@ -139,6 +149,7 @@ async function shutdown(signal: string) {
   app.log.info({ signal }, 'shutting down');
   await app.close();
   await redis.quit().catch(() => {});
+  await shutdownTelemetry();
   process.exit(0);
 }
 process.once('SIGTERM', () => void shutdown('SIGTERM'));

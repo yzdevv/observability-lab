@@ -1,5 +1,6 @@
 import { hostname } from 'node:os';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { SpanKind, extractTraceContext, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPL, config, keys } from './config.ts';
 import { closeDeps, createDeps } from './deps.ts';
 import { completeOrder } from './orders.ts';
@@ -9,7 +10,9 @@ const consumer = `${hostname()}-${process.pid}`;
 let running = true;
 
 function log(level: 'info' | 'error', msg: string, extra: Record<string, unknown> = {}) {
-  console.log(JSON.stringify({ level, time: Date.now(), service: 'worker-node', impl: IMPL, msg, ...extra }));
+  console.log(JSON.stringify({
+    level, time: Date.now(), service: 'worker-node', impl: IMPL, msg, ...traceLogFields(), ...extra,
+  }));
 }
 
 type StreamReply = [stream: string, entries: [id: string, fields: string[]][]][];
@@ -31,14 +34,37 @@ async function ensureGroup() {
 async function processEntry(entryId: string, fields: Record<string, string>) {
   const started = performance.now();
   const orderId = fields.orderId;
+  // Continue the trace started by the HTTP request that enqueued this order.
+  const parent = extractTraceContext({ traceparent: fields.traceparent ?? '', tracestate: fields.tracestate ?? '' });
   try {
-    if (!orderId) throw new Error('message without orderId');
-    await sleep(config.workMs); // simulated work, identical in both implementations
-    const updated = await completeOrder(deps, orderId);
-    await deps.redis.xack(keys.stream, keys.group, entryId);
-    log('info', 'order processed', {
-      orderId, entryId, updated, durationMs: Math.round(performance.now() - started),
-    });
+    await withSpan(
+      'order.process',
+      {
+        kind: SpanKind.CONSUMER,
+        parent,
+        attributes: {
+          'order.id': orderId ?? '',
+          'lab.impl': IMPL,
+          'lab.scenario': fields.scenario ?? 'none',
+          'lab.attempt': Number(fields.attempt ?? 1),
+          'messaging.system': 'redis',
+          'messaging.operation.type': 'process',
+          'messaging.destination.name': keys.stream,
+          'messaging.message.id': entryId,
+        },
+      },
+      async (span) => {
+        if (!orderId) throw new Error('message without orderId');
+        // Simulated work, identical in both implementations.
+        await withSpan('order.fulfil', { attributes: { 'lab.simulated': true } }, () => sleep(config.workMs));
+        const updated = await completeOrder(deps, orderId);
+        span.setAttribute('order.updated', updated);
+        await deps.redis.xack(keys.stream, keys.group, entryId);
+        log('info', 'order processed', {
+          orderId, entryId, updated, durationMs: Math.round(performance.now() - started),
+        });
+      },
+    );
   } catch (err) {
     // Left unacked: stays in the pending list (reclaimed in Milestone D).
     log('error', 'order processing failed', { orderId, entryId, err: (err as Error).message });
@@ -73,6 +99,7 @@ async function run() {
   }
   await closeDeps(deps);
   log('info', 'worker stopped');
+  await shutdownTelemetry();
 }
 
 function stop() {

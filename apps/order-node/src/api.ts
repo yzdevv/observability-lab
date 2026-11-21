@@ -1,13 +1,17 @@
 import Fastify from 'fastify';
+import { trace } from '@opentelemetry/api';
+import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPL, config } from './config.ts';
 import { closeDeps, createDeps } from './deps.ts';
 import { HttpError, createOrder, getOrder, parseCreateOrder, parseOrderId } from './orders.ts';
 
 const deps = createDeps();
 const app = Fastify({
-  logger: { base: { impl: IMPL, service: 'order-api-node' } },
+  logger: { base: { impl: IMPL, service: 'order-api-node' }, mixin: traceLogFields },
   bodyLimit: 4096,
 });
+
+app.addHook('onRequest', routeSpanHook);
 
 app.setErrorHandler((err, req, reply) => {
   if (err instanceof HttpError) return reply.code(err.status).send({ error: err.message });
@@ -20,8 +24,10 @@ app.setErrorHandler((err, req, reply) => {
 });
 
 app.post('/orders', async (req, reply) => {
-  const input = parseCreateOrder(req.body);
+  const input = await withSpan('order.validate', {}, () => parseCreateOrder(req.body));
+  trace.getActiveSpan()?.setAttributes({ 'lab.impl': IMPL, 'lab.scenario': input.scenario });
   const result = await createOrder(deps, input);
+  trace.getActiveSpan()?.setAttribute('order.id', result.orderId);
   return reply.code(202).send(result);
 });
 
@@ -42,6 +48,7 @@ async function shutdown(signal: string) {
   app.log.info({ signal }, 'shutting down');
   await app.close();
   await closeDeps(deps);
+  await shutdownTelemetry();
   process.exit(0);
 }
 process.once('SIGTERM', () => void shutdown('SIGTERM'));

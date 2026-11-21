@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { SpanKind, injectTraceContext, withSpan } from '@lab/telemetry';
 import { IMPL, config, keys } from './config.ts';
 import type { Deps } from './deps.ts';
 
@@ -43,20 +44,26 @@ export function parseOrderId(id: string): string {
 }
 
 async function getProduct({ db, redis }: Deps, id: string, scenario: Scenario): Promise<Product> {
-  const key = keys.product(id);
-  if (scenario !== 'cache-miss') {
-    const cached = await redis.get(key);
-    if (cached) return JSON.parse(cached) as Product;
-  }
-  const { rows } = await db.query<{ id: string; name: string; price_cents: number }>(
-    'SELECT id, name, price_cents FROM products WHERE id = $1',
-    [id],
-  );
-  const row = rows[0];
-  if (!row) throw new HttpError(404, `unknown product ${id}`);
-  const product: Product = { id: row.id, name: row.name, priceCents: row.price_cents };
-  await redis.set(key, JSON.stringify(product), 'EX', config.productCacheTtlS);
-  return product;
+  return withSpan('product.lookup', { attributes: { 'product.id': id } }, async (span) => {
+    const key = keys.product(id);
+    if (scenario !== 'cache-miss') {
+      const cached = await redis.get(key);
+      if (cached) {
+        span.setAttribute('cache.hit', true);
+        return JSON.parse(cached) as Product;
+      }
+    }
+    span.setAttributes({ 'cache.hit': false, 'cache.skipped': scenario === 'cache-miss' });
+    const { rows } = await db.query<{ id: string; name: string; price_cents: number }>(
+      'SELECT id, name, price_cents FROM products WHERE id = $1',
+      [id],
+    );
+    const row = rows[0];
+    if (!row) throw new HttpError(404, `unknown product ${id}`);
+    const product: Product = { id: row.id, name: row.name, priceCents: row.price_cents };
+    await redis.set(key, JSON.stringify(product), 'EX', config.productCacheTtlS);
+    return product;
+  });
 }
 
 // The delay for slow-db is part of the INSERT itself, so the slow span is the real query.
@@ -70,17 +77,37 @@ export async function createOrder(deps: Deps, input: CreateOrderInput) {
   const orderId = randomUUID();
   const delayS = input.scenario === 'slow-db' ? config.slowDbMs / 1000 : 0;
 
-  await deps.db.query(INSERT_ORDER, [
-    orderId, product.id, input.quantity, product.priceCents, IMPL, input.scenario, delayS,
-  ]);
+  await withSpan('order.persist', { attributes: { 'order.id': orderId } }, () =>
+    deps.db.query(INSERT_ORDER, [
+      orderId, product.id, input.quantity, product.priceCents, IMPL, input.scenario, delayS,
+    ]),
+  );
 
   // Not atomic with the insert: if this fails the order stays queued (see ARCHITECTURE.md).
-  await deps.redis.xadd(
-    keys.stream, 'MAXLEN', '~', String(config.streamMaxLen), '*',
-    'orderId', orderId,
-    'scenario', input.scenario,
-    'attempt', '1',
-    'traceparent', '',
+  await withSpan(
+    'order.enqueue',
+    {
+      kind: SpanKind.PRODUCER,
+      attributes: {
+        'order.id': orderId,
+        'messaging.system': 'redis',
+        'messaging.operation.type': 'send',
+        'messaging.destination.name': keys.stream,
+      },
+    },
+    async (span) => {
+      // The worker continues this trace from the traceparent carried in the message.
+      const { traceparent = '', tracestate = '' } = injectTraceContext();
+      const entryId = await deps.redis.xadd(
+        keys.stream, 'MAXLEN', '~', String(config.streamMaxLen), '*',
+        'orderId', orderId,
+        'scenario', input.scenario,
+        'attempt', '1',
+        'traceparent', traceparent,
+        'tracestate', tracestate,
+      );
+      if (entryId) span.setAttribute('messaging.message.id', entryId);
+    },
   );
 
   return { orderId, impl: IMPL, status: 'queued' as const };
