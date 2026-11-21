@@ -1,0 +1,18 @@
+# Server overrides: run every lab container inside homelab-lab.slice (CPU/RAM cap for the
+# whole lab), and keep Postgres data outside the nightly backup set. See docs/RESOURCE-BUDGET.md.
+# The lab-web service (public + homelab networks) is added in Milestone E.
+x-slice: &slice
+  cgroup_parent: homelab-lab.slice
+
+services:
+  postgres:
+    <<: *slice
+    volumes: !override
+      - /opt/homelab/lab-data/observability-lab/postgres:/var/lib/postgresql/data
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+  redis: *slice
+  gateway: *slice
+  order-api-node: *slice
+  worker-node: *slice
+  order-api-go: *slice
+  worker-go: *slice

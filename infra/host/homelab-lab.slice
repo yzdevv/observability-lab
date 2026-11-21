@@ -1,0 +1,15 @@
+# /etc/systemd/system/homelab-lab.slice — total resource budget for the Observability Lab.
+# Install: sudo cp infra/host/homelab-lab.slice /etc/systemd/system/ && sudo systemctl daemon-reload
+# Watch:   systemd-cgtop homelab-lab.slice
+[Unit]
+Description=Observability Lab resource budget
+
+[Slice]
+# At most 2 of the 8 threads in total; production (weight 100) wins under contention.
+CPUQuota=200%
+CPUWeight=50
+# Throttle from 2.5 GB, hard ceiling 3 GB for all lab containers together.
+MemoryHigh=2560M
+MemoryMax=3G
+IOWeight=50
+TasksMax=1024

@@ -1,0 +1,154 @@
+# Base definition. Combine with compose.dev.yaml (Mac) or compose.homelab.yaml (server).
+# Limits follow docs/RESOURCE-BUDGET.md.
+name: observability-lab
+
+x-service: &service
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  cpu_shares: 256          # production containers default to 1024
+  pids_limit: 128
+  networks: [lab]
+
+x-app: &app
+  <<: *service
+  read_only: true
+  tmpfs: [/tmp]
+
+x-db-env: &db-env
+  DATABASE_URL: postgres://lab:${LAB_DB_PASSWORD:-lab-dev-only}@postgres:5432/lab
+  REDIS_URL: redis://redis:6379
+
+x-depends: &depends
+  postgres: { condition: service_healthy }
+  redis: { condition: service_healthy }
+
+services:
+  postgres:
+    <<: *service
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: lab
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: ${LAB_DB_PASSWORD:-lab-dev-only}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=64MB
+      - -c
+      - max_connections=50
+      - -c
+      - work_mem=4MB
+      - -c
+      - log_min_duration_statement=250
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d lab"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 256m
+    cpus: 0.75
+
+  redis:
+    <<: *app
+    image: redis:7.4-alpine
+    # Disposable lab data: no persistence. Only TTL'd cache keys may be evicted, never streams.
+    command: ["redis-server", "--save", "", "--appendonly", "no",
+              "--maxmemory", "48mb", "--maxmemory-policy", "volatile-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 96m
+    cpus: 0.25
+
+  gateway:
+    <<: *app
+    build: { context: .., dockerfile: infra/node.Dockerfile, args: { APP: gateway } }
+    image: observability-lab/gateway:local
+    command: ["node", "src/server.ts"]
+    environment:
+      PORT: "8080"
+      REDIS_URL: redis://redis:6379
+      ORDER_NODE_URL: http://order-api-node:8081
+      ORDER_GO_URL: http://order-api-go:8082
+      RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-20}
+      MAX_INFLIGHT: ${MAX_INFLIGHT:-20}
+      MAX_BACKLOG: ${MAX_BACKLOG:-500}
+    depends_on:
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 128m
+    cpus: 0.5
+
+  # --- Node implementation -------------------------------------------------
+  order-api-node:
+    <<: *app
+    build: { context: .., dockerfile: infra/node.Dockerfile, args: { APP: order-node } }
+    image: observability-lab/order-node:local
+    command: ["node", "src/api.ts"]
+    environment:
+      <<: *db-env
+      PORT: "8081"
+    depends_on: *depends
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 128m
+    cpus: 0.5
+
+  worker-node:
+    <<: *app
+    image: observability-lab/order-node:local
+    command: ["node", "src/worker.ts"]
+    environment: *db-env
+    depends_on:
+      <<: *depends
+      order-api-node: { condition: service_started }   # same image; built by order-api-node
+    mem_limit: 128m
+    cpus: 0.5
+
+  # --- Go implementation (same limits as Node, for a fair comparison) -----
+  order-api-go:
+    <<: *app
+    build: { context: ../apps/order-go }
+    image: observability-lab/order-go:local
+    environment:
+      <<: *db-env
+      MODE: api
+      PORT: "8082"
+    depends_on: *depends
+    healthcheck:
+      test: ["CMD", "/order-go", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 128m
+    cpus: 0.5
+
+  worker-go:
+    <<: *app
+    image: observability-lab/order-go:local
+    environment:
+      <<: *db-env
+      MODE: worker
+    depends_on:
+      <<: *depends
+      order-api-go: { condition: service_started }   # same image; built by order-api-go
+    mem_limit: 128m
+    cpus: 0.5
+
+networks:
+  lab: {}
+
+volumes:
+  pgdata: {}
