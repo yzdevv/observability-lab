@@ -36,7 +36,7 @@ Requirements: Docker Desktop, Node 24, pnpm, Go 1.26.
 docker compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
 pnpm install                  # once, for the contract tests and typecheck
 ./scripts/smoke.sh            # creates an order via node and go, waits for completed
-pnpm test:contract            # API contract, run against both implementations
+pnpm test:contract            # API contract + end-to-end traces, against both implementations
 pnpm typecheck                # Node services; for Go: (cd apps/order-go && go vet ./...)
 ```
 
@@ -44,7 +44,9 @@ The dev override raises the per-IP rate limit (300/min) and the host-load thresh
 and a busy Mac do not trip the guards.
 
 - Gateway: `http://127.0.0.1:8088`
-- Grafana: `http://127.0.0.1:3000` (from Milestone B)
+- Grafana: `http://127.0.0.1:3000` (anonymous admin in dev only) → Explore → Tempo; paste the
+  `X-Trace-Id` from a gateway response, or search by `order.id` / `lab.scenario`
+- Tempo API: `http://127.0.0.1:3200` (used by the tracing tests)
 - SPA dev server: `pnpm --filter web dev` (proxies `/api` to the gateway)
 
 The Mac is arm64 and the server amd64, so images are built on the server, as for Kelasin.

@@ -87,12 +87,12 @@ Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for
 
 ## Definition of done (whole project)
 
-- [ ] Gateway → order API → Postgres works for Node and Go
-- [ ] Orders are processed asynchronously through Redis Streams
+- [x] Gateway → order API → Postgres works for Node and Go
+- [x] Orders are processed asynchronously through Redis Streams
 - [ ] Docker Compose runs everything within the resource budget
-- [ ] One trace ID links request and worker, in both languages
+- [x] One trace ID links request and worker, in both languages
 - [ ] Grafana shows traces, metrics and logs, linked by trace ID
-- [ ] A slow query can be identified from the trace alone
+- [x] A slow query can be identified from the trace alone
 - [ ] At least three failure scenarios are reproducible
 - [ ] Baseline vs degraded, and Node vs Go, are compared with numbers
 - [ ] Retry, timeout and recovery are observable

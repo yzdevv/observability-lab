@@ -107,13 +107,35 @@ An integration test asserts that the worker span's trace ID equals the request's
 
 ## Telemetry pipeline
 
-- Apps send OTLP over HTTP to `otel-collector:4318` on the internal `lab` network only.
-  The receiver is never published on a host port or the tunnel.
-- Collector: `memory_limiter` → `batch` → exporters; `spanmetrics` connector produces
-  request/error/duration metrics per service and route for Prometheus.
+- Apps send OTLP over HTTP (protobuf) to `otel-collector:4318` on the internal `lab` network only.
+  The receiver is never published on a host port or the tunnel. Configuration is the standard
+  `OTEL_*` environment variables in both languages (service name, endpoint, resource attributes).
+- Spans are exported every 1 s (`OTEL_BSP_SCHEDULE_DELAY=1000`, default 5 s) so a visitor's trace is
+  available within a couple of seconds.
+- Collector: `memory_limiter` → `batch` → `otlp_grpc/tempo`. Span metrics (Prometheus) and logs
+  (Loki) are added in Milestone D.
 - Sampling: 100 % in the lab (low traffic); tail sampling (keep errors + slow) only if volume grows.
-- Logs: pino (Node) and slog (Go) JSON with `trace_id` / `span_id`, exported over OTLP to Loki.
-- Grafana datasources are provisioned from files: Tempo ↔ Loki ↔ Prometheus links by trace ID.
+- Grafana datasources are provisioned from files (`infra/grafana/provisioning`).
+
+### What is instrumented
+
+| | Node (gateway, order-node) | Go (order-go) |
+|---|---|---|
+| SDK setup | `packages/telemetry`, loaded with `node --import @lab/telemetry/register` before the app | `telemetry.go` (`setupTelemetry`) |
+| Incoming HTTP | `instrumentation-http`; span renamed to the route template by a Fastify hook | `otelhttp`; span renamed to `r.Pattern` after routing |
+| Outgoing HTTP | `instrumentation-undici` (gateway `fetch`), injects `traceparent` | — |
+| Postgres | `instrumentation-pg` | `otelpgx` (also records `pool.acquire`, useful to see pool waits) |
+| Redis | `instrumentation-ioredis` | own `redisTracingHook` (~30 lines) |
+| Business spans | `order.validate`, `product.lookup` (`cache.hit`), `order.persist`, `order.enqueue` (producer), `order.process` (consumer), `order.fulfil` (simulated work), `gateway.guards` | same names and attributes |
+| Logs | `trace_id` / `span_id` added to every log line (pino mixin, slog handler) | same |
+
+Noise control:
+- `/healthz` is not traced (Docker health checks run every 10 s).
+- Database and Redis spans are only created inside an existing trace (`requireParentSpan` in Node,
+  a parent check in the Go Redis hook). Without this, the worker's blocking `XREADGROUP` poll would
+  start a new trace every 5 seconds. Verified: every trace in Tempo has the gateway as its root.
+
+The gateway returns `X-Trace-Id` on every response; the SPA uses it to fetch the visitor's own trace.
 
 ## Network exposure
 

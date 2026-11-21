@@ -88,3 +88,10 @@ Rules for fair numbers:
 ## Results
 
 None yet.
+
+## Observations to follow up
+
+- **Gateway → order API gap (Milestone B)**: in a Go `slow-db` trace the gateway's HTTP client span
+  starts ~16 ms after the guards finish, and the order API's server span starts ~24 ms after that.
+  Candidates: connection setup in undici (no keep-alive pool warm yet), Docker DNS, event-loop delay.
+  Good first investigation for Milestone C.

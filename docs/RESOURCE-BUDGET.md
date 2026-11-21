@@ -56,8 +56,21 @@ Every service has `mem_limit`, `cpus`, `pids_limit`, `cpu_shares: 256` (default 
 The per-container CPU limits add up to more than 2 on purpose; the slice caps the total. Node and
 Go get identical limits so comparisons are fair.
 
-Measured at idle on the Mac (Milestone A): order-api-go 7 MiB, worker-go 7 MiB, order-api-node
-65 MiB, worker-node 32 MiB, gateway 39 MiB, Postgres 63 MiB, Redis 40 MiB.
+Measured on the Mac:
+
+| Service | Milestone A (no tracing) | Milestone B (tracing on) |
+|---|---|---|
+| order-api-go | 7 MiB | 11 MiB |
+| worker-go | 7 MiB | 4 MiB |
+| order-api-node | 65 MiB | 66 MiB |
+| worker-node | 32 MiB | 58 MiB |
+| gateway | 39 MiB | 71 MiB |
+| otel-collector | — | 34 MiB |
+| tempo | — | 48 MiB |
+| grafana | — | 40 MiB |
+
+The OpenTelemetry SDK costs Node processes roughly 25–30 MiB; the gateway is the one to watch
+against its 128 MiB limit.
 
 ## Layer 3 — application guards (gateway)
 

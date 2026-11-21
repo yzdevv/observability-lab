@@ -19,4 +19,4 @@ and prove improvements with measured evidence."
 | [EXPERIMENTS.md](EXPERIMENTS.md) | Failure scenarios, how comparisons are made fair, experiment write-up template |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Local development and homelab deployment steps |
 
-Status (2026-11-21): Milestone A done (core services, Node + Go, guards, contract tests). Next: Milestone B, distributed tracing.
+Status (2026-11-21): Milestones A and B done (core services in Node + Go, guards, end-to-end tracing). Next: Milestone C, slow-database experiment.

@@ -22,6 +22,8 @@ docker compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
 pnpm install && pnpm test:contract
 ```
 
+Grafana: http://127.0.0.1:3000 → Explore → Tempo. Every gateway response carries `X-Trace-Id`.
+
 ```sh
 curl -X POST http://127.0.0.1:8088/api/go/orders \
   -H 'content-type: application/json' \
@@ -35,7 +37,7 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 ## Status
 
 - [x] Milestone A — core services (Node + Go), gateway guards, contract tests
-- [ ] Milestone B — distributed tracing
+- [x] Milestone B — distributed tracing (OpenTelemetry → Collector → Tempo → Grafana)
 - [ ] Milestone C — slow database visible in traces
 - [ ] Milestone D — metrics, logs, more failure scenarios, load tests
 - [ ] Milestone E — public demo
