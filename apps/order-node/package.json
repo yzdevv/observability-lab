@@ -1,0 +1,14 @@
+{
+  "name": "@lab/order-node",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "api": "node src/api.ts",
+    "worker": "node src/worker.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.12.8",
+    "ioredis": "^6.0.0",
+    "pg": "^8.23.1"
+  }
+}
