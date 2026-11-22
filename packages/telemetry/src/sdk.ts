@@ -49,7 +49,9 @@ export function startTelemetry(): void {
       // trace_id/span_id fields in stdout JSON come from our own mixin (traceLogFields).
       new PinoInstrumentation({ disableLogCorrelation: true }),
       // Event-loop delay and utilisation, GC, heap: the Node runtime numbers next to Go's.
-      new RuntimeNodeInstrumentation({ monitoringPrecision: 5000 }),
+      // monitoringPrecision is the event-loop sampling interval (ms) and every reading includes it,
+      // so it must stay small: readings are ~10 ms + the actual delay.
+      new RuntimeNodeInstrumentation({ monitoringPrecision: 10 }),
     ],
   });
   sdk.start();

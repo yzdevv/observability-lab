@@ -36,7 +36,7 @@ for (const impl of ['node', 'go']) {
     const errors = step.requests - step.accepted;
     md.push(`| ${step.targetRate} | ${fmt(accepted)} | ${fmt(step.latencyMs.p50)} | ${fmt(step.latencyMs.p95)} | ${fmt(step.latencyMs.p99)} | ` +
       `${errors ? statusText(Object.fromEntries(Object.entries(step.status).filter(([c]) => c !== '202'))) : 0} | ${fmt(cpu, 2)} | ${fmt(throttled, 0)}% | ` +
-      `${fmt(mem, 0)} MiB | ${impl === 'node' ? fmt(runtime, 0) + ' ms' : fmt(runtime, 0)} | ${impl === 'node' ? fmt(poolWait, 0) + ' max' : fmt(poolWait, 1) + '/s'} |`);
+      `${fmt(mem, 0)} MiB | ${impl === 'node' ? (runtime !== null && runtime < 1000 ? fmt(runtime, 0) + ' ms' : '–') : fmt(runtime, 0)} | ${impl === 'node' ? fmt(poolWait, 0) + ' max' : fmt(poolWait, 1) + '/s'} |`);
     rows.push({ impl, step, cpu, throttled, mem, runtime, poolWait });
   }
   md.push('');
@@ -46,6 +46,8 @@ for (const impl of ['node', 'go']) {
     startup.push(`| ${impl} | ${fmt(s.startToListeningS * 1000, 0)} ms | ${fmt(s.imageBytes / 1e6, 0)} MB |`);
   }
 }
+md.push('Node event-loop delay is "–" for runs made while the runtime instrumentation sampled every 5 s: each reading then ' +
+  'included the 5 s interval and was meaningless (fixed to 10 ms afterwards).', '');
 md.push('## Start-up and image', '', '| Impl | Container start → listening | Image size |', '|---|---|---|', ...startup,
   '', 'From Docker\'s container start time to the app\'s "listening" log line (includes telemetry setup and DB/Redis clients).');
 await writeReport(dir, md, rows);
