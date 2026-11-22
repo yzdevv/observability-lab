@@ -14,7 +14,13 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { registerCgroupMetrics } from './cgroup.ts';
 
 // Health checks run every few seconds; tracing them would bury the interesting traces.
-const UNTRACED_PATHS = new Set(['/healthz']);
+// Health checks, and the public page's read-only helpers: tracing a trace lookup would create a
+// new trace per lookup (and the page polls), which is noise in Tempo and in the span metrics.
+const UNTRACED_PATHS = new Set(['/healthz', '/api/lab/status', '/api/lab/stats']);
+const untraced = (url = '') => {
+  const path = url.split('?')[0] ?? '';
+  return UNTRACED_PATHS.has(path) || path.startsWith('/api/traces/');
+};
 
 let sdk: NodeSDK | undefined;
 
@@ -36,7 +42,7 @@ export function startTelemetry(): void {
     logRecordProcessors: enabled('LOGS') ? [new BatchLogRecordProcessor({ exporter: new OTLPLogExporter() })] : [],
     instrumentations: [
       new HttpInstrumentation({
-        ignoreIncomingRequestHook: (req) => UNTRACED_PATHS.has((req.url ?? '').split('?')[0] ?? ''),
+        ignoreIncomingRequestHook: (req) => untraced(req.url),
       }),
       new UndiciInstrumentation({ requireParentforSpans: true }),
       // requireParentSpan: no root spans from background work such as the worker's blocking

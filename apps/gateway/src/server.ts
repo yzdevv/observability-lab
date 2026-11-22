@@ -4,6 +4,8 @@ import { Redis } from 'ioredis';
 import { metrics, trace } from '@opentelemetry/api';
 import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPLS, SCENARIOS, config, type Impl } from './config.ts';
+import { TraceNotFound, getPublicTrace } from './traces.ts';
+import { getLabStats } from './stats.ts';
 import { INFLIGHT_REFUSAL, Inflight, checkGuards, createBacklogReaders, hostLoad1, type GuardVerdict } from './guards.ts';
 
 const redis = new Redis(config.redisUrl, { maxRetriesPerRequest: 2 });
@@ -54,6 +56,8 @@ await app.register(rateLimit, {
       retryAfter: Math.ceil(ctx.ttl / 1000),
     }),
 });
+
+const readLimit = { max: config.readLimitPerMin, timeWindow: '1 minute' };
 
 const implParam = {
   type: 'object',
@@ -137,11 +141,46 @@ app.post<{ Params: { impl: Impl }; Body: Record<string, unknown> }>(
 
 app.get<{ Params: { impl: Impl; id: string } }>(
   '/api/:impl/orders/:id',
-  { schema: { params: { ...implParam, required: ['impl', 'id'], properties: { ...implParam.properties, id: { type: 'string', maxLength: 64 } } } } },
+  {
+    schema: { params: { ...implParam, required: ['impl', 'id'], properties: { ...implParam.properties, id: { type: 'string', maxLength: 64 } } } },
+    config: { rateLimit: readLimit },
+  },
   async (req, reply) => forward(reply, req.params.impl, `/orders/${encodeURIComponent(req.params.id)}`),
 );
 
-app.get('/api/lab/status', async () => {
+// The visitor's own trace, for the waterfall on the public page. `at` = when the request was sent
+// (ms since the epoch) narrows the Tempo lookup.
+app.get<{ Params: { traceId: string }; Querystring: { at?: number } }>(
+  '/api/traces/:traceId',
+  {
+    schema: {
+      params: { type: 'object', required: ['traceId'], properties: { traceId: { type: 'string', pattern: '^[0-9a-f]{32}$' } } },
+      querystring: { type: 'object', properties: { at: { type: 'integer', minimum: 0 } } },
+    },
+    config: { rateLimit: readLimit },
+  },
+  async (req, reply) => {
+    try {
+      return reply.header('cache-control', 'no-store').send(await getPublicTrace(req.params.traceId, req.query.at));
+    } catch (err) {
+      if (err instanceof TraceNotFound) return reply.code(404).send({ error: err.message });
+      req.log.warn({ err: (err as Error).message }, 'trace lookup failed');
+      return reply.code(502).send({ error: 'trace store unavailable' });
+    }
+  },
+);
+
+// Live request rate, error share and latency per implementation (last 5 minutes).
+app.get('/api/lab/stats', { config: { rateLimit: readLimit } }, async (req, reply) => {
+  try {
+    return reply.header('cache-control', 'public, max-age=10').send(await getLabStats());
+  } catch (err) {
+    req.log.warn({ err: (err as Error).message }, 'stats query failed');
+    return reply.code(502).send({ error: 'metrics store unavailable' });
+  }
+});
+
+app.get('/api/lab/status', { config: { rateLimit: readLimit } }, async () => {
   const [load1, nodeBacklog, goBacklog] = await Promise.all([hostLoad1(), backlog.node(), backlog.go()]);
   return {
     load1,

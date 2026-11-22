@@ -22,9 +22,14 @@ export const config = {
     go: process.env.ORDER_GO_URL ?? 'http://order-api-go:8082',
   } satisfies Record<Impl, string>,
   upstreamTimeoutMs: num('UPSTREAM_TIMEOUT_MS', 5000),
+  // Read by the public page's endpoints (trace waterfall, live numbers).
+  tempoUrl: process.env.TEMPO_URL ?? 'http://tempo:3200',
+  prometheusUrl: process.env.PROMETHEUS_URL ?? 'http://prometheus:9090',
 
   // Guards — see docs/RESOURCE-BUDGET.md
   rateLimitPerMin: num('RATE_LIMIT_PER_MIN', 20),
+  // Reads (order status polling, trace lookups) per IP per minute.
+  readLimitPerMin: num('READ_LIMIT_PER_MIN', 240),
   maxInflight: num('MAX_INFLIGHT', 20),
   // 1-minute host load average above which new work is refused. Default: half the host's threads.
   maxLoad1: num('MAX_LOAD1', availableParallelism() / 2),
