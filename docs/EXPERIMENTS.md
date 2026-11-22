@@ -57,7 +57,12 @@ Rules for fair numbers:
 - **Expected**: similar at low load (Postgres dominates); differences in memory, tail latency and the
   saturation point. Report what is measured, even if the difference is small.
 
-### 6. Queue backlog and load shedding
+### 6. Cost of telemetry
+- **Question**: what do access logs, metrics and the gateway's CPU limit cost per request?
+- **Method**: same traffic under different settings, CPU per request from the Docker API, 3 rounds.
+- **Added in Milestone D** after the first load tests came out far slower than Milestone C.
+
+### 7. Queue backlog and load shedding (not run yet)
 - **Question**: what happens when producers outrun the worker?
 - **Method**: scale worker work time up, push traffic, watch backlog grow until the gateway's
   backlog guard sheds load.
@@ -202,6 +207,205 @@ POST /api/:impl/orders  gateway         674.7 ms  |█████████�
   `cpu.stat` throttling into the metrics (Milestone D) and check whether the throttled periods line
   up with the slow requests before changing any limit.
 
+
+### Milestone D experiments — 2026-11-22 (Mac, Docker Desktop)
+
+Common setup: all services as committed at the end of Milestone D (per-request access logs off,
+gateway 1 CPU, order APIs 0.5 CPU / 128 MiB, DB pool 10), k6 in Docker on the same Mac. Full tables,
+raw data and saved traces are in each `experiments/<n>/results/mac-2026-11-22/report.md`.
+
+**A caution about this machine.** Docker Desktop runs ~19 containers plus k6 on 8 virtual CPUs.
+Absolute numbers drift between runs made an hour apart (experiment 6: the same setting measured
+5–7 ms gateway CPU per request in the morning pass and 10–12 ms later), and short whole-VM stalls
+happen (one is dissected under experiment 2). Comparisons inside one experiment, run back to back
+and interleaved, are what these results rely on. The homelab re-run (Milestone F) gives the
+absolute numbers.
+
+### 2. Cache efficiency (`cache-miss`)
+
+**Question:** what does the product cache actually save?
+**Setup:** `none` vs `cache-miss` at 10, 25 and 50 req/s (30 s steps), both implementations.
+
+| | Node none | Node cache-miss | Go none | Go cache-miss |
+|---|---|---|---|---|
+| Traces with a Postgres `SELECT` in `product.lookup` | 0–2 % | 99–100 % | 0–1 % | 97–100 % |
+| `product.lookup` p50 (10 / 25 / 50 req/s) | 0.44 / 0.32 / 0.51 ms | 1.50 / 0.90 / 1.04 ms | 0.34 / 0.22 / 0.24 ms | 0.76 / 0.54 / 0.80 ms |
+| DB operations per request (order API) | 1.0 | 2.0 | 2.0 | 4.0 |
+| Request p50 at 25 req/s | 12.1 ms | 11.1 ms | 9.5 ms | 10.6 ms |
+
+(Go's DB operation count is twice Node's because `otelpgx` counts prepare and execute separately;
+both double with `cache-miss`.)
+
+**Found from telemetry:** every `cache-miss` trace has the extra `SELECT` span under
+`product.lookup`, and the span metrics show the order API's Postgres query rate doubling. The cache
+saves about 0.5–1 ms per request and half of the API's queries.
+**What we learned:** at ≤ 50 req/s Postgres has plenty of headroom (peak 9–16 % of a core either
+way), so end-to-end latency does not move measurably. Here the cache's value is in database load,
+not in user-facing latency. It would matter once Postgres is shared or slower, which this lab can't
+show at these rates. Reporting "no visible latency difference" is the honest result.
+
+**An anomaly, diagnosed from telemetry alone.** Go `none` at 25 req/s had 273 refused requests and a
+1.65 s p95 between two clean steps. trace-stats: `payment.authorize` in 94 % of traces but the
+provider's server span in only 64 %, so about 30 % of requests never called the provider. Logs: the
+**healthy** `payment` breaker opened at 10:39:35 and closed at 10:39:45. The slowest trace shows why:
+a Redis `GET` took 669 ms, the `INSERT` 487 ms, `XADD` 545 ms, even the gateway's `xinfo` 130 ms,
+all at once and in different processes. That is a whole-VM stall of ~3 s, enough for 5 payment
+timeouts in a row. **Lesson:** "open after 5 consecutive failures" is too twitchy. A 3 s blip
+took the payment path down for 10 s (266 orders refused). A failure *rate* over a window with a
+minimum number of calls, as resilience libraries do, would ride this out.
+
+### 3. Worker retry (`worker-retry`)
+
+**Question:** are retries and recovery visible?
+**Setup:** `worker-retry` vs `none` at 5 req/s for 60 s, both implementations.
+
+| | Node none | Node worker-retry | Go none | Go worker-retry |
+|---|---|---|---|---|
+| Orders / completed / failed | 299 / 299 / 0 | 301 / 301 / 0 | 301 / 301 / 0 | 299 / 299 / 0 |
+| Attempts per order | 1.00 | **3.00** | 1.00 | **3.00** |
+| Time to complete p50 / p95 | 25 / 33 ms | **1942 / 2063 ms** | 23 / 35 ms | **1930 / 2048 ms** |
+| "retry scheduled" log lines per order | 0 | 2.02 | 0 | 2.02 |
+| API p95 (k6) | 32.5 ms | 60.3 ms | 43.9 ms | 33.8 ms |
+
+**How it shows up:** each order has one trace with three `order.process` spans side by side under
+`order.enqueue` (error, error, ok), each with `lab.attempt` and, on failures, `lab.retry.delay_ms`.
+Each failure also leaves a warning log linked to the trace, and Postgres has `attempts = 3`.
+Completion takes ~1.9 s: 0.5 s + 1 s of backoff, plus up to 250 ms each time for the retry loop to
+move the entry back to the stream, plus the work. (2.02 log lines per order = retries of orders
+created just before the window.)
+**What we learned:** retries cost the client nothing (the API answers before the worker runs; API
+p95 is in the same range for both scenarios), and nothing is lost: every order completed in both
+languages. Not covered here: the "gave up after 3 attempts" path is in the code but no scenario
+triggers it.
+
+### 4. Dependency timeout and circuit breaker (`dependency-timeout`)
+
+**Question:** does a timeout + circuit breaker protect the API when a dependency hangs?
+**Setup:** through the gateway (in-flight limit 20), for 180 s: 10 req/s normal orders + 40 req/s
+`dependency-timeout` at the same time. The degraded payment provider hangs 3 s for the first 30 s
+of every minute; the API's payment timeout is 500 ms. Breaker on vs off (`BREAKER_ENABLED`).
+Requests are split by whether they were sent during an outage window.
+
+Node, during the outage windows:
+
+| | Breaker on | Breaker off |
+|---|---|---|
+| Normal orders accepted | **888 / 899 (99 %)** | 614 / 901 (68 %) |
+| Normal orders p95 | 278 ms | 567 ms |
+| `dependency-timeout` requests p50 | **9 ms** (98 % `503 circuit-open`) | 514 ms (2,463 × `504` timeout) |
+| Peak in-flight at the gateway | 11 | **20 (the limit)** |
+| Refused by the in-flight guard (whole run) | 425 | 1,994 |
+
+- With the breaker **off**, every degraded request holds a gateway slot for the full 500 ms timeout.
+  40 req/s × 0.5 s = 20 slots, exactly the in-flight limit, so the gateway starts refusing
+  **normal** orders too (286 refused in the outage windows). One slow dependency takes capacity
+  from traffic that doesn't use it.
+- With the breaker **on**, it opened 0.6–0.7 s after each outage began (5 timeouts). Degraded
+  requests then fail in ~10 ms and normal orders are barely touched.
+- **Recovery:** the breaker closed 1.7–1.8 s after each outage ended (the next probe after the
+  10 s open period found the provider healthy). The cost of the breaker: up to 10 s of refusing
+  requests that would have worked again. Visible on the dashboard's breaker timeline and in the
+  logs (`circuit breaker open / half-open / closed`, linked to the trace of the request that
+  caused it).
+
+Go: the effect on the degraded traffic was the same in both attempts. During outages `dependency-timeout`
+requests had a p50 of 24–38 ms with the breaker on (99 % `503 circuit-open`) vs 509–517 ms with it
+off. The breaker opened 0.6–1.9 s after an outage began and closed 1.8–7.5 s after it ended. **The
+effect on normal orders was inconclusive for Go:** both breaker-on runs coincided with the Mac being
+overloaded (healthy-window p50 87 ms and 252 ms vs ~18–55 ms in the breaker-off runs; in the second
+attempt even the gateway's host-load guard fired, at a Docker VM load above 16). An open Grafana
+dashboard refreshing 24 panels every 10 s on the same VM is a likely contributor (default refresh
+is now 30 s). This gets a clean re-run on the homelab
+([attempt 1](../experiments/04-dependency-timeout/results/mac-2026-11-22/report.md),
+[attempt 2](../experiments/04-dependency-timeout/results/mac-2026-11-22-go-rerun/report.md)).
+
+**Trade-offs:** see experiment 2's anomaly for the flip side. "5 consecutive failures" also opens
+on a 3 s infrastructure blip. Production would use a failure rate over a sliding window with a
+minimum number of calls, a shorter or adaptive open period, and a breaker per downstream *host*
+rather than per process.
+
+
+### 5. Node vs Go under load
+
+**Question:** where do the runtimes actually differ for this workload?
+**Setup:** k6 → each order API directly (no gateway), scenario `none`, 50 → 400 req/s in 30 s
+steps, identical limits (0.5 CPU, 128 MiB, pool 10), same Postgres, Redis and fake payment.
+
+| Target req/s | Node accepted/s | Node p50 / p95 | Node CPU / throttled | Go accepted/s | Go p50 / p95 | Go CPU / throttled |
+|---|---|---|---|---|---|---|
+| 50 | 50.0 | 11 / 555 ms | 0.30 / 24 % | 50.0 | 9 / 63 ms | 0.21 / 7 % |
+| 100 | **60.1** | 264 / 1525 ms | 0.38 / 62 % | **100.0** | 8 / 34 ms | 0.29 / 7 % |
+| 200 | 18.2 | 386 / 3465 ms | 0.41 / 66 % | **128.2** | 8 / 580 ms | 0.37 / 46 % |
+| 300 | 0 | 409 / 5642 ms | 0.48 / 89 % | 283.7 | 1905 / 3245 ms | 0.50 / 100 % |
+| 400 | 0 | 1212 / 4261 ms | 0.50 / 100 % | 31.2 | 10571 / 28776 ms | 0.48 / 81 % |
+
+| | Node | Go |
+|---|---|---|
+| CPU per request (from the 50 and 100 req/s steps) | ~6 ms | ~2.9 ms |
+| Memory at 50 req/s → 400 req/s | 77 → 121 MiB | 26 → 128 MiB (5,528 goroutines) |
+| Container start → listening | 5.5 s | 0.23 s |
+| Image size | 207 MB | 30 MB |
+
+**What we learned:**
+- On the same half core, Go handled about **twice the traffic** before its knee (100+ vs ~60 req/s)
+  and used about half the CPU per request, including full OpenTelemetry instrumentation.
+- Both collapse the same way, and it isn't the database: CPU starvation makes the 500 ms payment
+  timeout fire on the **healthy** provider, five timeouts open its breaker, and the API then refuses
+  everything with `503 circuit-open`. A wall-clock timeout can't tell "the dependency is slow" from
+  "I am too starved to read its answer". Fixes: load shedding before saturation (the gateway's
+  in-flight guard does this for real traffic), and a breaker that ignores failures while the
+  process itself is throttled.
+- Go's failure mode is memory, not CPU: past saturation, goroutines pile up (5,528 at 400 req/s)
+  and it reaches its 128 MiB limit. Node's single event loop just gets slower.
+- Start-up: 5.5 s vs 0.23 s, and 207 MB vs 30 MB. That matters for scaling out and cold starts, not
+  for this demo.
+- Node's event-loop delay column is missing from these runs: the runtime instrumentation was
+  sampling every 5 s and every reading included that interval (fixed afterwards, see experiment 6
+  notes).
+
+### 6. Cost of telemetry
+
+**Question:** what do access logs, metrics and the gateway's CPU limit cost per request?
+**Why it exists:** the first Milestone D load test was far slower than Milestone C (Node p95 356 ms
+at 10 req/s vs 16 ms). An exploratory single-run pass
+([`results/mac-2026-11-22-exploratory`](../experiments/06-telemetry-cost/results/mac-2026-11-22-exploratory/report.md))
+pointed at per-request access logs and at the gateway being CPU-throttled, so both were changed
+and this experiment checks the effect properly.
+**Setup:** 40 req/s, scenario `none`, 40 s, through the gateway; 4 settings × 2 implementations ×
+3 interleaved rounds; CPU per container from the Docker Engine API, median of the rounds.
+
+| Setting | Impl | App CPU per request (range) | Loki + collector | Gateway throttled | p95 | Refused |
+|---|---|---|---|---|---|---|
+| access logs on | node | 28.9 ms (22.7–36.0) | 7.2 ms | 9 % | 2648 ms | 407 |
+| access logs on | go | 26.0 ms (22.2–27.7) | 8.1 ms | 18 % | 1768 ms | 386 |
+| **access logs off (default)** | node | 25.5 ms (21.9–32.3) | 4.5 ms | 12 % | 1206 ms | 675 |
+| **access logs off (default)** | go | 24.1 ms (15.9–24.3) | 6.4 ms | 11 % | 1061 ms | 243 |
+| traces only | node | 26.3 ms (21.9–30.3) | 3.8 ms | – | 873 ms | 611 |
+| traces only | go | 20.7 ms (19.7–20.8) | 4.5 ms | – | 488 ms | 46 |
+| gateway at 0.5 CPU | node | 25.8 ms (22.8–32.3) | 4.9 ms | **55 %** | 3386 ms | 873 |
+| gateway at 0.5 CPU | go | 19.9 ms (18.9–27.4) | 6.0 ms | **44 %** | 1696 ms | 306 |
+
+App CPU = gateway + order API + worker + fake payment. "Refused" is out of ~1,600 requests.
+
+**What we learned:**
+- **The gateway's CPU limit is the big one.** At 0.5 CPU it was throttled in 44–55 % of
+  scheduling periods, which roughly doubled p95 and refused more requests for both implementations.
+  Node's GC and libuv threads burst above half a core within a single 100 ms period even when the
+  average is lower. Every request passes the gateway, so it now has 1 CPU.
+- **Access logs cost something, but less than the noise here:** turning them off saved ~8–12 % of
+  app CPU at the median (ranges overlap) and clearly less work for Loki and the collector (Loki
+  3.8 → 2.2 ms per request for Node). They repeat what traces and span metrics already record, so
+  off by default is still right.
+- **Metrics and warning logs** cost Go ~15 % of app CPU (24.1 → 20.7 ms) and are within the noise
+  for Node. Traces stay on everywhere; they are the point of the lab.
+- **Even traces-only is CPU-heavy on this Mac**: ~20–26 ms of CPU per request across four
+  services. That is why tail latency at 40 req/s is far above Milestone C's numbers: the extra
+  payment hop, metrics, three more telemetry backends and the noisy shared VM all add up. The
+  homelab run will show how much of it is the Mac.
+- A mistake caught along the way: Node's runtime instrumentation was configured with
+  `monitoringPrecision: 5000`. That is the event-loop sampling interval, and every reading includes
+  it, so the event-loop delay metric read ~5 s at idle. Now 10 ms: idle p50 ~11 ms (10 ms interval +
+  <1 ms real delay). The dashboard subtracts the interval.
 
 ## Observations to follow up
 

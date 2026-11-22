@@ -27,7 +27,7 @@ sense when the live lab is offline.
 | Gateway | Node.js + Fastify | Single public entry point: routing, rate limits, load guards |
 | Failure injection | Per request (a `scenario` field), not global toggles | One visitor cannot degrade the lab for everyone else |
 | Telemetry | OTel SDKs → OTel Collector → Tempo (traces), Prometheus (metrics), Loki (logs) → Grafana | Standard, vendor-neutral |
-| Metrics source | Span metrics (RED) generated from traces + runtime metrics from SDKs | No hand-written metrics code needed for the basics |
+| Metrics source | Span metrics (RED) generated from traces + runtime metrics from SDKs + each container's own cgroup counters | No hand-written request metrics, no cAdvisor or Docker socket |
 | Logs | Structured JSON logs with `trace_id`, sent over OTLP to Loki 3 | No Promtail, no Docker log scraping |
 | Public trace view | Own waterfall in the SPA, fed by a gateway endpoint that reads Tempo | Grafana stays LAN-only; looks better and shows more skill |
 | Grafana | LAN-only at `grafana.home.arpa` | Admin tool, not for the public |
@@ -73,6 +73,15 @@ Node and Go; an integration test asserts the worker span shares the request's tr
 
 **Done when:** three or more scenarios are reproducible and each has recorded evidence.
 
+**Result (2026-11-22):** done. Prometheus (span metrics, runtime, cgroup, guard and breaker
+metrics) and Loki over OTLP, linked to Tempo in Grafana, plus a provisioned "Lab overview"
+dashboard. Scenarios `worker-retry` (backoff, XAUTOCLAIM reclaim) and `dependency-timeout` (fake
+payment provider, timeout, circuit breaker) in both languages. Experiments 2–6 recorded: cache
+efficiency, retries, breaker on/off, Node vs Go under load, and the cost of telemetry. That last one
+was added after the first load tests showed Milestone D's own telemetry and the gateway's 0.5 CPU
+limit hurting latency; both were fixed (access logs off, gateway 1 CPU). The queue-backlog
+experiment (7) is left for later.
+
 ### E — Public demo (3–4 days)
 - SPA: choose implementation (Node / Go / both), choose scenario, send, see own trace waterfall,
   see live RED numbers and the lab guard status.
@@ -95,11 +104,11 @@ Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for
 - [x] Orders are processed asynchronously through Redis Streams
 - [ ] Docker Compose runs everything within the resource budget
 - [x] One trace ID links request and worker, in both languages
-- [ ] Grafana shows traces, metrics and logs, linked by trace ID
+- [x] Grafana shows traces, metrics and logs, linked by trace ID
 - [x] A slow query can be identified from the trace alone
-- [ ] At least three failure scenarios are reproducible
-- [ ] Baseline vs degraded, and Node vs Go, are compared with numbers
-- [ ] Retry, timeout and recovery are observable
+- [x] At least three failure scenarios are reproducible
+- [x] Baseline vs degraded, and Node vs Go, are compared with numbers
+- [x] Retry, timeout and recovery are observable
 - [ ] The public demo is safe and rate-limited
 - [ ] Architecture diagram and case study are published
 - [ ] Benchmarks and trade-offs are documented

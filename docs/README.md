@@ -19,4 +19,4 @@ and prove improvements with measured evidence."
 | [EXPERIMENTS.md](EXPERIMENTS.md) | Failure scenarios, how comparisons are made fair, load and trace-analysis tooling, recorded results |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Local development and homelab deployment steps |
 
-Status (2026-11-22): Milestones A–C done (core services in Node + Go, guards, end-to-end tracing, slow-database experiment with recorded results). Next: Milestone D, metrics, logs and more scenarios.
+Status (2026-11-22): Milestones A–D done (Node + Go services, tracing, metrics, logs, dashboard, four failure scenarios, experiments 1–6). Next: Milestone E, the public demo page.

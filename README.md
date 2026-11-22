@@ -22,7 +22,9 @@ docker compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
 pnpm install && pnpm test:contract
 ```
 
-Grafana: http://127.0.0.1:3000 → Explore → Tempo. Every gateway response carries `X-Trace-Id`.
+Grafana: http://127.0.0.1:3000 → Dashboards → Observability Lab → Lab overview, or Explore → Tempo
+(every gateway response carries `X-Trace-Id`; from a trace you can open its logs, and from a log
+line its trace).
 
 ```sh
 curl -X POST http://127.0.0.1:8088/api/go/orders \
@@ -40,9 +42,19 @@ node scripts/trace-stats.ts --run /tmp/run                # which span the time 
 
 ## Results so far
 
-Experiment 1 (slow database): the injected 300 ms `INSERT` is 98 % of the response in both
-languages. Under load it caps each API at ~33 orders/s, and the trace shows the new cost as waits
-for a pool connection. [Write-up](docs/EXPERIMENTS.md#1-slow-database--2026-11-22-mac-docker-desktop).
+- **Slow database:** the injected 300 ms `INSERT` is 98 % of the response in both languages. Under
+  load it caps each API at ~33 orders/s, and the trace shows the new cost as waits for a pool connection.
+- **Retries:** every `worker-retry` order completes after 3 attempts (~1.9 s), visible as three
+  sibling spans in one trace, with no cost to the API's response time.
+- **Circuit breaker:** while the payment provider hangs, the breaker turns 500 ms timeouts into
+  ~10 ms refusals; in the Node run it kept 99 % of normal orders flowing vs 68 % without it.
+- **Node vs Go:** on the same half core, Go took ~2× the traffic before its knee, used half the CPU
+  per request, and starts in 0.23 s vs 5.5 s.
+- **Telemetry isn't free:** the gateway's CPU limit and per-request access logs were found (and
+  fixed) by measuring what each costs.
+
+Details and caveats (Mac numbers; the homelab re-run comes with deployment):
+[docs/EXPERIMENTS.md](docs/EXPERIMENTS.md#results).
 
 ## Docs
 
@@ -53,6 +65,6 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 - [x] Milestone A — core services (Node + Go), gateway guards, contract tests
 - [x] Milestone B — distributed tracing (OpenTelemetry → Collector → Tempo → Grafana)
 - [x] Milestone C — slow database visible in traces (experiment 1, baseline vs degraded, pool saturation under load)
-- [ ] Milestone D — metrics, logs, more failure scenarios, load tests
+- [x] Milestone D — metrics, logs, dashboard, retry and circuit-breaker scenarios, experiments 2–6
 - [ ] Milestone E — public demo
 - [ ] Milestone F — deployment and case study
