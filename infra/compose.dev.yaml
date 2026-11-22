@@ -6,6 +6,8 @@ services:
     environment:
       RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-300}
       MAX_LOAD1: "16"
+  lab-web:
+    ports: ["127.0.0.1:8090:8080"]   # the public page, as visitors see it
   tempo:
     ports: ["127.0.0.1:3200:3200"]   # trace API, used by the tracing tests
   prometheus:

@@ -115,6 +115,22 @@ services:
     # tail latency and in-flight 503s for both implementations. The slice still caps the lab at 2 CPUs.
     cpus: ${GATEWAY_CPUS:-1.0}
 
+  # Public page: nginx serving the SPA and proxying /api/ to the gateway. The only service that
+  # joins the public network on the server (compose.homelab.yaml).
+  lab-web:
+    <<: *app
+    build: { context: .., dockerfile: infra/web.Dockerfile }
+    image: observability-lab/web:local
+    depends_on:
+      gateway: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 32m
+    cpus: 0.25
+
   # --- Node implementation -------------------------------------------------
   order-api-node:
     <<: *app
