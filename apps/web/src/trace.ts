@@ -82,6 +82,8 @@ export function describe(span: Span): string {
     const m = /^\s*(\w+)\s+(?:.*?\b(?:into|from|update)\s+)?(\w+)?/i.exec(text);
     if (m) return `${m[1]!.toUpperCase()}${m[2] ? ` ${m[2]}` : ''}`;
   }
+  // Outgoing HTTP calls: the gateway only calls the order APIs, the APIs only the payment provider.
+  if (span.kind === 'client') return span.service === 'gateway' ? "the gateway's call to the order API" : 'the HTTP call to the payment provider';
   return FRIENDLY[span.name] ?? span.name;
 }
 
