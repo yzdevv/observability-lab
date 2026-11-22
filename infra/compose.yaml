@@ -27,6 +27,9 @@ x-otel-env: &otel-env
   OTEL_METRICS_EXPORTER: otlp
   OTEL_METRIC_EXPORT_INTERVAL: "10000"   # push metrics every 10 s
   OTEL_LOGS_EXPORTER: otlp
+  # Node: skip the process/host/os detectors; their attributes (full command line etc.) would be
+  # copied onto every log line in Loki. Service name, namespace and environment come from env.
+  OTEL_NODE_RESOURCE_DETECTORS: env,serviceinstance
 
 x-depends: &depends
   postgres: { condition: service_healthy }

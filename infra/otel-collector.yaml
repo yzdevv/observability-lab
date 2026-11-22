@@ -11,7 +11,7 @@ receivers:
 connectors:
   # RED metrics (rate, errors, duration) per service and span, generated from every span, so the
   # apps need no hand-written request metrics. Labels are kept low-cardinality: no IDs, no IPs.
-  spanmetrics:
+  span_metrics:
     histogram:
       unit: ms
       explicit:
@@ -23,7 +23,7 @@ connectors:
       - name: lab.shed_reason
     metrics_flush_interval: 15s
   # Request counts and latency between services (gateway → order API → …), for Grafana's service map.
-  servicegraph:
+  service_graph:
     latency_histogram_buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2.5s, 5s]
     dimensions: [lab.impl]
     store:
@@ -45,11 +45,11 @@ exporters:
     endpoint: tempo:4317
     tls:
       insecure: true
-  otlphttp/prometheus:
+  otlp_http/prometheus:
     endpoint: http://prometheus:9090/api/v1/otlp
     tls:
       insecure: true
-  otlphttp/loki:
+  otlp_http/loki:
     endpoint: http://loki:3100/otlp
     tls:
       insecure: true
@@ -67,12 +67,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp_grpc/tempo, spanmetrics, servicegraph]
+      exporters: [otlp_grpc/tempo, span_metrics, service_graph]
     metrics:
-      receivers: [otlp, spanmetrics, servicegraph]
+      receivers: [otlp, span_metrics, service_graph]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/prometheus]
+      exporters: [otlp_http/prometheus]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/loki]
+      exporters: [otlp_http/loki]

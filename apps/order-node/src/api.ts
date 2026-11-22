@@ -35,7 +35,8 @@ app.get<{ Params: { id: string } }>('/orders/:id', async (req) => {
   return getOrder(deps, parseOrderId(req.params.id));
 });
 
-app.get('/healthz', async (_req, reply) => {
+// Docker probes this every 10 s: not logged, not traced.
+app.get('/healthz', { logLevel: 'silent' }, async (_req, reply) => {
   try {
     await Promise.all([deps.db.query('SELECT 1'), deps.redis.ping()]);
     return { ok: true, impl: IMPL };

@@ -1,7 +1,7 @@
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { Redis } from 'ioredis';
-import { trace } from '@opentelemetry/api';
+import { metrics, trace } from '@opentelemetry/api';
 import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPLS, config, type Impl } from './config.ts';
 import { INFLIGHT_REFUSAL, Inflight, checkGuards, createBacklogReaders, hostLoad1, type GuardVerdict } from './guards.ts';
@@ -9,6 +9,24 @@ import { INFLIGHT_REFUSAL, Inflight, checkGuards, createBacklogReaders, hostLoad
 const redis = new Redis(config.redisUrl, { maxRetriesPerRequest: 2 });
 const backlog = createBacklogReaders(redis);
 const inflight = new Inflight();
+
+// Guard state as metrics, for the dashboard and for alerting on the lab itself.
+const meter = metrics.getMeter('observability-lab/gateway');
+meter.createObservableGauge('lab.gateway.inflight', { description: 'Order requests being handled now' })
+  .addCallback((r) => r.observe(inflight.count));
+meter.createObservableGauge('lab.queue.backlog', { description: 'Pending + undelivered stream entries', unit: '{message}' })
+  .addCallback(async (r) => {
+    for (const impl of IMPLS) r.observe(await backlog[impl](), { 'lab.impl': impl });
+  });
+meter.createObservableGauge('lab.host.load1', { description: 'Host 1-minute load average, as the guard sees it' })
+  .addCallback(async (r) => r.observe(await hostLoad1()));
+meter.createObservableGauge('lab.gateway.guard.limit', { description: 'Configured guard limits' })
+  .addCallback((r) => {
+    r.observe(config.maxInflight, { 'lab.guard': 'inflight' });
+    r.observe(config.maxLoad1, { 'lab.guard': 'host-load' });
+    r.observe(config.maxBacklog, { 'lab.guard': 'backlog' });
+  });
+const shedCounter = meter.createCounter('lab.gateway.shed', { description: 'Requests refused by a guard', unit: '{request}' });
 
 const app = Fastify({
   logger: { base: { service: 'gateway' }, mixin: traceLogFields },
@@ -81,6 +99,7 @@ app.post<{ Params: { impl: Impl }; Body: Record<string, unknown> }>(
     trace.getActiveSpan()?.setAttribute('lab.impl', impl);
     const shed = (verdict: Exclude<GuardVerdict, { ok: true }>) => {
       trace.getActiveSpan()?.setAttribute('lab.shed_reason', verdict.reason);
+      shedCounter.add(1, { 'lab.impl': impl, 'lab.shed_reason': verdict.reason });
       req.log.warn({ impl, reason: verdict.reason }, 'request shed by guard');
       return reply.code(503).header('retry-after', '5').send({ error: verdict.message, reason: verdict.reason });
     };
@@ -143,7 +162,8 @@ app.get('/api/health', async (_req, reply) => {
   return reply.code(ok ? 200 : 503).send({ gateway: 'ok', node, go });
 });
 
-app.get('/healthz', async () => ({ ok: true }));
+// Docker probes this every 10 s: not logged, not traced.
+app.get('/healthz', { logLevel: 'silent' }, async () => ({ ok: true }));
 
 async function shutdown(signal: string) {
   app.log.info({ signal }, 'shutting down');

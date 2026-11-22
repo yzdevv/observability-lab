@@ -1,4 +1,5 @@
 import { hostname } from 'node:os';
+import pino from 'pino';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { SpanKind, extractTraceContext, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
 import { IMPL, config, keys } from './config.ts';
@@ -9,10 +10,11 @@ const deps = createDeps();
 const consumer = `${hostname()}-${process.pid}`;
 let running = true;
 
-function log(level: 'info' | 'error', msg: string, extra: Record<string, unknown> = {}) {
-  console.log(JSON.stringify({
-    level, time: Date.now(), service: 'worker-node', impl: IMPL, msg, ...traceLogFields(), ...extra,
-  }));
+// Same logger as the API (pino): JSON on stdout, and over OTLP to Loki via the pino instrumentation.
+const logger = pino({ base: { service: 'worker-node', impl: IMPL }, mixin: traceLogFields });
+
+function log(level: 'info' | 'warn' | 'error', msg: string, extra: Record<string, unknown> = {}) {
+  logger[level](extra, msg);
 }
 
 type StreamReply = [stream: string, entries: [id: string, fields: string[]][]][];
