@@ -16,6 +16,8 @@ observability-lab/
 │   ├── compose.dev.yaml      # Mac: gateway on 127.0.0.1:8088, Grafana on 127.0.0.1:3000
 │   ├── compose.homelab.yaml  # server: cgroup_parent slice, shared networks, bind mounts
 │   ├── node.Dockerfile       # shared by gateway and order-node (ARG APP)
+│   ├── web.Dockerfile        # SPA build + nginx (lab-web)
+│   ├── web-nginx.conf
 │   ├── otel-collector.yaml
 │   ├── tempo.yaml
 │   ├── prometheus.yaml
@@ -25,7 +27,7 @@ observability-lab/
 ├── tests/contract/     # same tests against node and go (API contract + traces in Tempo)
 ├── load/orders.js      # k6 profile (steady, stepped, mixed, direct-to-API)
 ├── experiments/        # one folder per experiment: run.sh, analyse.ts, results/
-├── scripts/            # smoke.sh, experiment.sh, trace-stats.ts, waterfall.ts, lib/
+├── scripts/            # smoke.sh, experiment.sh, record-demo.ts, trace-stats.ts, waterfall.ts, lib/
 └── docs/
 ```
 
@@ -44,13 +46,17 @@ pnpm typecheck                # Node services; for Go: (cd apps/order-go && go v
 The dev override raises the per-IP rate limit (300/min) and the host-load threshold (16) so tests
 and a busy Mac do not trip the guards.
 
+- Public page (lab-web, production build): `http://127.0.0.1:8090`
 - Gateway: `http://127.0.0.1:8088`
 - Grafana: `http://127.0.0.1:3000` (anonymous admin in dev only) → Explore → Tempo; paste the
   `X-Trace-Id` from a gateway response, or search by `order.id` / `lab.scenario`
 - Grafana dashboard: Dashboards → Observability Lab → Lab overview
 - Tempo API: `http://127.0.0.1:3200` (used by the tracing tests)
 - Prometheus: `http://127.0.0.1:9090`, Loki: `http://127.0.0.1:3100` (used by experiment analysis)
-- SPA dev server: `pnpm --filter web dev` (proxies `/api` to the gateway)
+- SPA dev server with hot reload: `pnpm --filter @lab/web dev` → `http://127.0.0.1:5173` (proxies
+  `/api` to the gateway; `GATEWAY_URL=http://127.0.0.1:9` shows the offline mode)
+- Offline recordings: `node scripts/record-demo.ts` (writes `apps/web/public/recorded/runs.json`;
+  rebuild lab-web afterwards)
 
 The Mac is arm64 and the server amd64, so images are built on the server, as for Kelasin.
 
@@ -72,8 +78,8 @@ ports, NPM proxy host for LAN names, Cloudflare tunnel for the public name.
    sudo chown -R yzdev: /opt/homelab/lab-data/observability-lab
    ```
    (each service's directory is then chowned to that image's uid)
-3. NPM proxy hosts (user adds): `lab.home.arpa → lab-web:80`, `grafana.home.arpa → grafana:3000`.
-4. Cloudflare tunnel route (user adds): `lab.mge.my.id → http://lab-web:80`.
+3. NPM proxy hosts (user adds): `lab.home.arpa → lab-web:8080`, `grafana.home.arpa → grafana:3000`.
+4. Cloudflare tunnel route (user adds): `lab.mge.my.id → http://lab-web:8080`.
 5. Jejak site for `lab.mge.my.id` + tunnel path route for `/j.js` and `/e` → `jejak-collector:8081`,
    above the lab-web catch-all.
 6. Kuma monitors: lab-web, gateway health, public keyword check, Grafana (LAN).

@@ -108,7 +108,8 @@ telemetry ("load shedding" is itself part of the demo).
 
 | Guard | Default | Response |
 |---|---|---|
-| Per-IP rate limit (`CF-Connecting-IP`) | 20 requests / minute | `429` |
+| Per-visitor request cap in nginx (`lab-web`, all `/api/`) | 10 / s, burst 20, 10 connections | `429` |
+| Per-IP rate limit (`CF-Connecting-IP`) | 20 orders / minute; 240 reads / minute | `429` |
 | Global in-flight requests | 20 | `503 reason=inflight` |
 | Host load (`/proc/loadavg`, 1-min) | > half the host's threads (4.0 on the server) | `503 reason=host-load` |
 | Queue backlog (pending + lag of the chosen stream) | > 500 | `503 reason=backlog` |
@@ -119,7 +120,11 @@ The host-load guard reads the whole server's load, so the lab backs off when *pr
 not only when the lab is. Load and backlog are cached for 1–2 s to keep the guards cheap. All values
 are environment variables.
 
-"Compare" mode in the SPA counts as two requests. Bursts (e.g. "send 20") are capped server-side.
+"Compare" mode in the SPA counts as two requests. The page sends one order (or two) per click and
+disables the button until the result is in; the server-side limits hold whatever a client does.
+Checked on the Mac: 200 concurrent API requests from one address through lab-web → 43 answered,
+157 refused with `429` by nginx. Live numbers are computed at most every 10 s for all visitors, so
+page views do not turn into Prometheus load.
 
 ## Layer 4 — data and storage limits
 
@@ -130,7 +135,7 @@ are environment variables.
 | Logs (Loki) | 3 d retention |
 | Redis | `maxmemory 48mb`, no persistence |
 | Streams | `MAXLEN ~ 10000` each |
-| Orders table | periodic reset deletes old demo orders |
+| Orders table | each worker deletes its orders older than 6 h, every 10 min |
 | Postgres | `shared_buffers=64MB`, `max_connections=50`; each service pool max 10 |
 | Container logs | Docker daemon default on the server: json-file 10m × 3 |
 

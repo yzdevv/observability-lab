@@ -22,7 +22,8 @@ docker compose -f infra/compose.yaml -f infra/compose.dev.yaml up -d --build
 pnpm install && pnpm test:contract
 ```
 
-Grafana: http://127.0.0.1:3000 → Dashboards → Observability Lab → Lab overview, or Explore → Tempo
+The demo page: http://127.0.0.1:8090 (pick Node.js, Go or both and a scenario, send an order, see
+its trace). Grafana: http://127.0.0.1:3000 → Dashboards → Observability Lab → Lab overview, or Explore → Tempo
 (every gateway response carries `X-Trace-Id`; from a trace you can open its logs, and from a log
 line its trace).
 
@@ -66,5 +67,5 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 - [x] Milestone B — distributed tracing (OpenTelemetry → Collector → Tempo → Grafana)
 - [x] Milestone C — slow database visible in traces (experiment 1, baseline vs degraded, pool saturation under load)
 - [x] Milestone D — metrics, logs, dashboard, retry and circuit-breaker scenarios, experiments 2–6
-- [ ] Milestone E — public demo
+- [x] Milestone E — public demo page: own-trace waterfall, compare mode, live numbers, offline replay
 - [ ] Milestone F — deployment and case study

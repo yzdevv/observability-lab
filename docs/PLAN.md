@@ -90,6 +90,14 @@ experiment (7) is left for later.
 
 **Done when:** a stranger can use it without instructions and cannot overload it.
 
+**Result (2026-11-23):** done on the Mac. The page (`apps/web`, served by `lab-web`) sends an order
+to Node.js, Go or both, shows the response in plain words, a one-line "where the time went" summary
+and the order's own waterfall (gateway reads Tempo; plumbing spans folded by default), live RED
+numbers and guard state, and the experiment findings. Offline it replays recorded runs. Limits:
+nginx per-visitor request cap in front of the gateway's order and read limits (flood test: 157 of
+200 refused). Orders older than 6 h are deleted. Recorded runs are from the Mac; re-record on the
+homelab in F.
+
 ### F — Deploy and case study (1–2 days)
 - Homelab deploy, tunnel route `lab.mge.my.id`, Kuma monitors, Jejak tracking.
 - Case study page on the portfolio; config copies in the homelab repo.
@@ -109,6 +117,6 @@ Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for
 - [x] At least three failure scenarios are reproducible
 - [x] Baseline vs degraded, and Node vs Go, are compared with numbers
 - [x] Retry, timeout and recovery are observable
-- [ ] The public demo is safe and rate-limited
+- [x] The public demo is safe and rate-limited
 - [ ] Architecture diagram and case study are published
 - [ ] Benchmarks and trade-offs are documented

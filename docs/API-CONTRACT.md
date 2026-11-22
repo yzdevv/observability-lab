@@ -9,7 +9,8 @@ against each.
 |---|---|---|
 | `POST` | `/api/{impl}/orders` | `impl` = `node` or `go`; body forwarded to the order API |
 | `GET` | `/api/{impl}/orders/{id}` | Order status |
-| `GET` | `/api/traces/{traceId}` | Trace for the waterfall (Milestone E); only traces created by the lab |
+| `GET` | `/api/traces/{traceId}?at={ms}` | Trace for the page's waterfall (below) |
+| `GET` | `/api/lab/stats` | Live RED numbers per impl, last 5 minutes (below) |
 | `GET` | `/api/lab/status` | Guard state: host load, in-flight, queue backlog per impl, limits |
 | `GET` | `/api/health` | Gateway + both order APIs |
 | `GET` | `/healthz` | Gateway liveness |
@@ -25,6 +26,45 @@ Gateway-specific errors:
 | `504` | Order API timed out | `{"error": "..."}` |
 
 Responses from the order API carry `X-Trace-Id` so the SPA can fetch the trace.
+
+Reads (`GET` order status, traces, stats, status) have their own per-IP limit, `READ_LIMIT_PER_MIN`
+(240). In front of the gateway, `lab-web`'s nginx caps each visitor at 10 API requests per second
+(burst 20) and 10 open connections.
+
+### `GET /api/traces/{traceId}`
+
+`traceId`: 32 lowercase hex characters (else `400`). `at` (optional): when the request was sent, in
+ms since the epoch; the gateway then asks Tempo only for a window around it, which is much faster.
+
+Response `200`:
+
+```json
+{
+  "traceId": "4bdd…",
+  "spans": [
+    { "spanId": "97c5…", "parentSpanId": "", "service": "gateway", "name": "POST /api/:impl/orders",
+      "kind": "server", "startMs": 1795334201539.0, "durationMs": 14.2, "error": false,
+      "attributes": { "lab.impl": "node", "lab.scenario": "none", "http.response.status_code": 202 } }
+  ]
+}
+```
+
+Only traces whose root span is the gateway's are returned (others: `404`), and only a fixed list of
+attributes (SQL text, cache hit, attempt, breaker state, scenario, status codes, …): no host names,
+ports or SDK details. `404` also means "not in Tempo yet": spans arrive a few seconds after they
+end, so the page asks again. `502` when Tempo is unreachable. Lookups are not traced themselves.
+
+### `GET /api/lab/stats`
+
+```json
+{ "window": "5m", "at": "2026-11-23T01:00:00.000Z",
+  "impls": { "node": { "rps": 0.4, "errorPct": 3, "p50Ms": 6.1, "p95Ms": 21.0 },
+             "go":   { "rps": 0.3, "errorPct": 0, "p50Ms": 4.2, "p95Ms": 9.8 } } }
+```
+
+From the span metrics of the gateway's `POST /api/:impl/orders` span: request rate, share not
+answered with `202`, and median / 95th percentile duration. `null` when there was no traffic.
+Computed at most once per 10 s for all visitors. `502` when Prometheus is unreachable.
 
 ## Order API (internal, both implementations)
 
@@ -194,8 +234,8 @@ CREATE TABLE orders (
 CREATE INDEX orders_created_at_idx ON orders (created_at);
 ```
 
-Seed: products `demo-001` … `demo-010`. Orders older than a few hours are deleted by a periodic
-reset (Milestone E).
+Seed: products `demo-001` … `demo-010`. Each worker deletes its implementation's orders older than
+`ORDER_RETENTION_HOURS` (6) every `CLEANUP_EVERY_MS` (10 min); the query is not traced.
 
 Shared SQL used by both implementations:
 

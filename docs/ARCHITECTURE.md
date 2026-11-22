@@ -45,8 +45,8 @@
 
 | Service | Tech | Role |
 |---|---|---|
-| `lab-web` | nginx + Vite/React SPA | Public page; proxies `/api/` to the gateway. Only container on the `public` network |
-| `gateway` | Node 24, Fastify | Entry point: validation of `impl`, rate limit per IP, in-flight cap, host-load guard, queue-backlog guard, upstream timeout; `GET /api/traces/:id` reads Tempo for the SPA |
+| `lab-web` | nginx + Vite/React SPA | Public page; proxies `/api/` to the gateway with a per-visitor request cap. Only container on the `public` network |
+| `gateway` | Node 24, Fastify | Entry point: validation of `impl`, rate limit per IP, in-flight cap, host-load guard, queue-backlog guard, upstream timeout; `GET /api/traces/:id` reads Tempo and `GET /api/lab/stats` reads Prometheus for the page |
 | `order-api-node` | Node 24, Fastify, `pg`, `ioredis` | Order API (Node path) |
 | `worker-node` | Node 24, `pg`, `ioredis` | Consumes `lab:node:orders` |
 | `order-api-go` | Go 1.26, `net/http`, `pgx`, `go-redis` | Order API (Go path) |
@@ -83,8 +83,26 @@ the Go binary is shared by `order-api-go`, `worker-go` and `fake-payment` (`MODE
    `order.process` as part of the same trace, simulates work, updates the row to `completed`,
    `XACK`s. A failed attempt is parked in a sorted set and retried with backoff (500 ms, 1 s); entries
    a dead worker never acknowledged are reclaimed with `XAUTOCLAIM` after 60 s.
-10. SPA polls `GET /api/{impl}/orders/:id` until completed, then asks the gateway for the trace and
-   draws the waterfall.
+10. SPA polls `GET /api/{impl}/orders/:id` every 0.5 s until completed, then asks the gateway for
+   the trace (every 1.5–2.5 s until every expected span is there, usually 2–4 s) and draws the
+   waterfall.
+
+## The public page
+
+- **Controls:** implementation (Node.js, Go, or both side by side) and scenario; one button sends.
+  "Both" sends the same scenario to each implementation at the same time.
+- **Result:** the response in plain words (accepted, timed out, refused by the breaker, rate
+  limited), the worker's outcome, a one-line summary ("the gateway answered in 331 ms; 94% of that
+  was INSERT into orders"), and the waterfall. The summary picks the span with the most self time
+  in the synchronous part of the trace. A dashed line marks when the response was sent; spans to
+  its right are the worker. Pool waits, Redis commands and HTTP client hops are folded by default
+  ("show all spans" unfolds them); selecting a row shows its attributes.
+- **Live numbers:** RED per implementation over the last 5 minutes and the current guard state.
+- **Findings:** the headline results of the experiments, linking to EXPERIMENTS.md.
+- **Offline mode:** if `/api/health` fails when the page loads, it says so and replays recorded
+  runs (`apps/web/public/recorded/runs.json`, written by `scripts/record-demo.ts`: one order per
+  implementation and scenario with its trace), with the same waterfall.
+- No third-party requests: the font is self-hosted, CSP is `default-src 'self'`.
 
 ## Node vs Go: keeping the comparison honest
 
@@ -165,10 +183,14 @@ its trace; dashboard log panel → trace; Tempo → service map.
 | Logs | pino → stdout + OTLP (`instrumentation-pino`); `trace_id` / `span_id` on every line | slog → stdout + OTLP (`otelslog` bridge); same fields |
 
 Noise control:
-- `/healthz` is not traced (Docker health checks run every 10 s).
+- `/healthz` is not traced (Docker health checks run every 10 s), nor are the page's helper
+  endpoints (`/api/traces/*`, `/api/lab/stats`, `/api/lab/status`): a trace lookup that created a
+  trace would add one per poll.
 - Database and Redis spans are only created inside an existing trace (`requireParentSpan` in Node,
   a parent check in the Go Redis hook). Without this, the worker's blocking `XREADGROUP` poll would
-  start a new trace every 5 seconds. Verified: every trace in Tempo has the gateway as its root.
+  start a new trace every 5 seconds. Background queries that must run outside a trace (deleting
+  old orders) use an unsampled parent in Go. Verified: every trace in Tempo has the gateway as its
+  root.
 
 The gateway returns `X-Trace-Id` on every response; the SPA uses it to fetch the visitor's own trace.
 
@@ -181,7 +203,8 @@ The gateway returns `X-Trace-Id` on every response; the SPA uses it to fetch the
 | `homelab` (shared) | `lab-web`, `grafana` | NPM proxy hosts `lab.home.arpa`, `grafana.home.arpa` |
 
 No host ports on the server. Gateway, databases, collector and storage are unreachable from the
-tunnel. In local development the gateway is published on `127.0.0.1:8088`.
+tunnel. In local development the page is published on `127.0.0.1:8090` and the gateway on
+`127.0.0.1:8088`.
 
 ## Known trade-offs (case study material)
 

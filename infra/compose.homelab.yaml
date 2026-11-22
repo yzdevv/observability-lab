@@ -1,6 +1,5 @@
 # Server overrides: run every lab container inside homelab-lab.slice (CPU/RAM cap for the
 # whole lab), and keep Postgres data outside the nightly backup set. See docs/RESOURCE-BUDGET.md.
-# The lab-web service (public + homelab networks) is added in Milestone E.
 x-slice: &slice
   cgroup_parent: homelab-lab.slice
 
@@ -17,6 +16,11 @@ services:
   order-api-go: *slice
   worker-go: *slice
   fake-payment: *slice
+  # The public page: reachable by the Cloudflare tunnel (public) and by NPM for lab.home.arpa
+  # (homelab). Nothing else in the lab joins those networks.
+  lab-web:
+    <<: *slice
+    networks: [lab, public, homelab]
   otel-collector: *slice
   tempo:
     <<: *slice
@@ -38,3 +42,7 @@ services:
     volumes: !override
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - /opt/homelab/lab-data/observability-lab/grafana:/var/lib/grafana
+
+networks:
+  public: { external: true }
+  homelab: { external: true }
