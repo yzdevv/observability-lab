@@ -5,13 +5,20 @@ import (
 	"errors"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -19,26 +26,67 @@ import (
 
 var tracer = otel.Tracer("observability-lab")
 
-// setupTelemetry configures the global tracer provider. Service name, endpoint and resource
-// attributes come from the standard OTEL_* environment variables, as in the Node services.
+// setupTelemetry configures the global tracer, meter and logger providers. Service name, endpoint,
+// export interval and resource attributes come from the standard OTEL_* environment variables, as
+// in the Node services.
 func setupTelemetry(ctx context.Context) (func(context.Context) error, error) {
 	noop := func(context.Context) error { return nil }
 	if os.Getenv("OTEL_SDK_DISABLED") == "true" {
 		return noop, nil
 	}
-	exporter, err := otlptracehttp.New(ctx)
-	if err != nil {
-		return noop, err
-	}
 	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(attribute.String("lab.impl", impl)))
 	if err != nil {
 		return noop, err
 	}
-	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter), sdktrace.WithResource(res))
+	var shutdowns []func(context.Context) error
+	shutdown := func(ctx context.Context) error {
+		var errs []error
+		for i := len(shutdowns) - 1; i >= 0; i-- {
+			errs = append(errs, shutdowns[i](ctx))
+		}
+		return errors.Join(errs...)
+	}
+
+	traceExporter, err := otlptracehttp.New(ctx)
+	if err != nil {
+		return noop, err
+	}
+	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(traceExporter), sdktrace.WithResource(res))
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{}, propagation.Baggage{}))
-	return tp.Shutdown, nil
+	shutdowns = append(shutdowns, tp.Shutdown)
+
+	if os.Getenv("OTEL_METRICS_EXPORTER") != "none" {
+		metricExporter, err := otlpmetrichttp.New(ctx)
+		if err != nil {
+			return shutdown, err
+		}
+		// The periodic reader honours OTEL_METRIC_EXPORT_INTERVAL.
+		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter)),
+			sdkmetric.WithResource(res))
+		otel.SetMeterProvider(mp)
+		shutdowns = append(shutdowns, mp.Shutdown)
+		// Goroutines, heap, GC: the Go runtime numbers next to Node's event loop and heap.
+		if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(5 * time.Second)); err != nil {
+			return shutdown, err
+		}
+		if err := registerCgroupMetrics(); err != nil {
+			return shutdown, err
+		}
+	}
+
+	if os.Getenv("OTEL_LOGS_EXPORTER") != "none" {
+		logExporter, err := otlploghttp.New(ctx)
+		if err != nil {
+			return shutdown, err
+		}
+		lp := sdklog.NewLoggerProvider(sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter)),
+			sdklog.WithResource(res))
+		global.SetLoggerProvider(lp)
+		shutdowns = append(shutdowns, lp.Shutdown)
+	}
+	return shutdown, nil
 }
 
 // withSpan runs fn inside a new span. Server errors mark the span as failed; client errors
@@ -90,6 +138,44 @@ func (h redisTracingHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook 
 
 func (redisTracingHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
 	return next
+}
+
+// fanoutHandler writes each record to several handlers: JSON on stdout and OTLP to Loki.
+type fanoutHandler []slog.Handler
+
+func (f fanoutHandler) Enabled(ctx context.Context, l slog.Level) bool {
+	for _, h := range f {
+		if h.Enabled(ctx, l) {
+			return true
+		}
+	}
+	return false
+}
+
+func (f fanoutHandler) Handle(ctx context.Context, r slog.Record) error {
+	var errs []error
+	for _, h := range f {
+		if h.Enabled(ctx, r.Level) {
+			errs = append(errs, h.Handle(ctx, r.Clone()))
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func (f fanoutHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	out := make(fanoutHandler, len(f))
+	for i, h := range f {
+		out[i] = h.WithAttrs(attrs)
+	}
+	return out
+}
+
+func (f fanoutHandler) WithGroup(name string) slog.Handler {
+	out := make(fanoutHandler, len(f))
+	for i, h := range f {
+		out[i] = h.WithGroup(name)
+	}
+	return out
 }
 
 // traceLogHandler adds trace_id and span_id to every log record written with a traced context,

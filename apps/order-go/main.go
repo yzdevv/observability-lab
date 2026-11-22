@@ -14,6 +14,7 @@ import (
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
 const impl = "go"
@@ -37,7 +38,8 @@ func run() error {
 	if cfg.Mode == "worker" {
 		service = "worker-go"
 	}
-	slog.SetDefault(slog.New(traceLogHandler{slog.NewJSONHandler(os.Stdout, nil)}).With("service", service, "impl", impl))
+	stdout := traceLogHandler{slog.NewJSONHandler(os.Stdout, nil)}
+	slog.SetDefault(slog.New(stdout).With("service", service, "impl", impl))
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -45,6 +47,10 @@ func run() error {
 	shutdownTelemetry, err := setupTelemetry(ctx)
 	if err != nil {
 		return fmt.Errorf("telemetry: %w", err)
+	}
+	if os.Getenv("OTEL_LOGS_EXPORTER") != "none" {
+		// Logs also go over OTLP to Loki; the bridge reads trace and span IDs from the context.
+		slog.SetDefault(slog.New(fanoutHandler{stdout, otelslog.NewHandler(service)}).With("service", service, "impl", impl))
 	}
 	defer func() {
 		// Flush buffered spans; the signal context is already cancelled at this point.
@@ -64,6 +70,10 @@ func run() error {
 		return fmt.Errorf("connect postgres: %w", err)
 	}
 	defer db.Close()
+	// Pool size, in-use and waiting connections as metrics (the Node pg instrumentation does the same).
+	if err := otelpgx.RecordStats(db); err != nil {
+		return fmt.Errorf("pool metrics: %w", err)
+	}
 
 	redisOpts, err := redis.ParseURL(cfg.RedisURL)
 	if err != nil {
