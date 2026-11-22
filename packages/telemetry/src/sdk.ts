@@ -22,7 +22,9 @@ export function startTelemetry(): void {
       new UndiciInstrumentation({ requireParentforSpans: true }),
       // requireParentSpan: no root spans from background work such as the worker's blocking
       // XREADGROUP poll, which would otherwise create a trace every 5 seconds.
-      new PgInstrumentation({ requireParentSpan: true, ignoreConnectSpans: true }),
+      // Connect spans stay on: pg-pool.connect is the wait for a free pool connection, the
+      // equivalent of pgx's pool.acquire, and shows when a slow query starves the pool.
+      new PgInstrumentation({ requireParentSpan: true }),
       new IORedisInstrumentation({ requireParentSpan: true }),
     ],
   });
