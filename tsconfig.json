@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["apps/gateway/src", "apps/order-node/src", "packages/telemetry/src", "tests", "scripts"]
+  "include": ["apps/gateway/src", "apps/order-node/src", "packages/telemetry/src", "tests", "scripts", "experiments"]
 }
