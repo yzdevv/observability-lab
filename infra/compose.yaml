@@ -213,9 +213,10 @@ services:
     volumes:
       - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
     environment:
-      GOMEMLIMIT: 160MiB
+      GOMEMLIMIT: 210MiB
     depends_on: [tempo, prometheus, loki]
-    mem_limit: 192m
+    # 192m was enough for traces only; span metrics, service graph and logs sit at ~180 MiB idle.
+    mem_limit: 256m
     cpus: 0.5
 
   tempo:
