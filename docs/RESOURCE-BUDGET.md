@@ -40,20 +40,30 @@ Every service has `mem_limit`, `cpus`, `pids_limit`, `cpu_shares: 256` (default 
 |---|---|---|
 | postgres | 256m | 0.75 |
 | redis | 96m | 0.25 |
-| gateway | 128m | 0.5 |
+| gateway | 128m | 1.0 (was 0.5, see below) |
 | order-api-node | 128m | 0.5 |
 | worker-node | 128m | 0.5 |
 | order-api-go | 128m | 0.5 |
 | worker-go | 128m | 0.5 |
-| otel-collector | 192m | 0.5 |
+| fake-payment | 32m | 0.25 |
+| otel-collector | 256m | 0.5 |
 | tempo | 512m | 0.5 |
 | prometheus | 384m | 0.5 |
 | loki | 384m | 0.5 |
 | grafana | 256m | 0.5 |
 | lab-web | 32m | 0.25 |
-| **Sum of limits** | **~2.7 GB** | |
+| **Sum of limits** | **~2.8 GB** | |
 
-The per-container CPU limits add up to more than 2 on purpose; the slice caps the total. Node and
+The collector started at 192m (traces only). With span metrics, the service graph and the log
+pipeline it idled at ~180 MiB, so Milestone D raised it to 256m (`GOMEMLIMIT` 210MiB,
+`memory_limiter` 200/50 MiB). The sum stays under the slice's 3 GB `MemoryMax`.
+
+The per-container CPU limits add up to more than 2 on purpose; the slice caps the total.
+
+The gateway went from 0.5 to 1.0 CPU in Milestone D: every request to both implementations passes
+through it, and at 0.5 it was CPU-throttled in ~16% of 100 ms scheduling periods at 40 req/s
+(experiment 6). Node's GC and libuv threads burst above half a core within a single period even when
+the average is ~0.2 cores, and each throttle stalls every request in flight. Node and
 Go get identical limits so comparisons are fair.
 
 Measured on the Mac:
@@ -71,6 +81,25 @@ Measured on the Mac:
 
 The OpenTelemetry SDK costs Node processes roughly 25–30 MiB; the gateway is the one to watch
 against its 128 MiB limit.
+
+Milestone D (traces + metrics + logs, idle after load tests, Mac):
+
+| Service | Memory | Limit |
+|---|---|---|
+| gateway | 65 MiB | 128m |
+| order-api-node / worker-node | 63 / 63 MiB | 128m |
+| order-api-go / worker-go | 16 / 15 MiB | 128m |
+| fake-payment | 15 MiB | 32m |
+| otel-collector | 180 MiB | 256m |
+| tempo | 165 MiB | 512m |
+| prometheus | 113 MiB | 384m |
+| loki | 92 MiB | 384m |
+| grafana | 55 MiB (up to ~250 MiB while starting) | 256m |
+| postgres / redis | 45 / 10 MiB | 256m / 96m |
+| **Total** | **~950 MiB** | |
+
+CPU is the tighter resource: see experiment 6 in EXPERIMENTS.md for what each telemetry signal
+costs per request.
 
 ## Layer 3 — application guards (gateway)
 
@@ -129,5 +158,6 @@ The nightly `homelab-backup` stops containers and tars every **named volume**. T
 ## Monitoring the budget
 
 - Uptime Kuma: lab web, gateway health, Grafana (LAN).
-- Grafana panel: lab slice CPU/memory (from cAdvisor or node exporter, if added) vs limits.
+- Grafana "Lab overview" dashboard: CPU used, CPU throttling and memory vs limit for the app services,
+  from each service's own cgroup counters (`lab.cgroup.*`, no cAdvisor), plus the guard state.
 - Telegram alert if the lab is OOM-killed repeatedly (Kuma sees the service go down).

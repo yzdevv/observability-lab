@@ -33,6 +33,8 @@
         │          PostgreSQL         │
         └─────────────────────────────┘
 
+  both order APIs ──HTTP──▶ fake-payment   (authorise every order; timeout + circuit breaker)
+
   every service ──OTLP──▶ otel-collector ──▶ Tempo (traces)
                                          ──▶ Prometheus (metrics)
                                          ──▶ Loki (logs)
@@ -49,6 +51,7 @@
 | `worker-node` | Node 24, `pg`, `ioredis` | Consumes `lab:node:orders` |
 | `order-api-go` | Go 1.26, `net/http`, `pgx`, `go-redis` | Order API (Go path) |
 | `worker-go` | Go 1.26 | Consumes `lab:go:orders` |
+| `fake-payment` | Go 1.26 (same binary, `MODE=payment`) | Fake payment provider: a healthy endpoint and a degraded one with a scheduled outage |
 | `postgres` | PostgreSQL 17 | Products and orders |
 | `redis` | Redis 7.4 | Product cache + order streams (no persistence; lab data is disposable) |
 | `otel-collector` | OTel Collector contrib | Receives OTLP, batches, generates span metrics, exports |
@@ -58,7 +61,7 @@
 | `grafana` | Grafana | Dashboards, LAN only |
 
 The Node image is shared by `order-api-node` and `worker-node` (different start command);
-the Go binary is shared by `order-api-go` and `worker-go` (`MODE=api|worker`).
+the Go binary is shared by `order-api-go`, `worker-go` and `fake-payment` (`MODE=api|worker|payment`).
 
 ## Request flow
 
@@ -68,15 +71,19 @@ the Go binary is shared by `order-api-go` and `worker-go` (`MODE=api|worker`).
 3. Order API validates the body (`order.validate`).
 4. Product lookup (`product.lookup`): Redis `GET lab:{impl}:product:{id}`; on miss, read Postgres and
    cache for 60 s. Scenario `cache-miss` skips the cache read.
-5. Order insert (`order.persist`): one `INSERT … SELECT … FROM pg_sleep($n)`; `$n` is 0 normally and
+5. Payment (`payment.authorize`): `POST fake-payment/authorize` with a 500 ms timeout behind a
+   circuit breaker; `dependency-timeout` uses the degraded endpoint and its own breaker. A timeout
+   returns `504`, an open breaker `503`; no order is stored in either case.
+6. Order insert (`order.persist`): one `INSERT … SELECT … FROM pg_sleep($n)`; `$n` is 0 normally and
    the configured delay for `slow-db`, so the slow span is the real insert, not a separate query.
-6. Enqueue (`order.enqueue`): `XADD lab:{impl}:orders` with `orderId`, `scenario`, `attempt` and
+7. Enqueue (`order.enqueue`): `XADD lab:{impl}:orders` with `orderId`, `scenario`, `attempt` and
    the current `traceparent`.
-7. API returns `202 {orderId, impl, status: "queued"}`. The client does not wait for the worker.
-8. Worker reads with `XREADGROUP` (group `workers`), extracts `traceparent`, starts
+8. API returns `202 {orderId, impl, status: "queued"}`. The client does not wait for the worker.
+9. Worker reads with `XREADGROUP` (group `workers`), extracts `traceparent`, starts
    `order.process` as part of the same trace, simulates work, updates the row to `completed`,
-   `XACK`s.
-9. SPA polls `GET /api/{impl}/orders/:id` until completed, then asks the gateway for the trace and
+   `XACK`s. A failed attempt is parked in a sorted set and retried with backoff (500 ms, 1 s); entries
+   a dead worker never acknowledged are reclaimed with `XAUTOCLAIM` after 60 s.
+10. SPA polls `GET /api/{impl}/orders/:id` until completed, then asks the gateway for the trace and
    draws the waterfall.
 
 ## Node vs Go: keeping the comparison honest
@@ -90,7 +97,7 @@ the Go binary is shared by `order-api-go` and `worker-go` (`MODE=api|worker`).
   say so instead of pretending the runtimes are alike.
 - **Same simulated work** in the worker (fixed duration).
 - **Honest expectations**: at demo traffic, Postgres and network dominate and both look similar.
-  Differences show in memory footprint, cold start, and tail latency under load (k6, Milestone D).
+  Differences show in memory footprint, cold start, and tail latency under load (experiment 5).
   The case study reports what was measured, including "no meaningful difference" where true.
 
 ## Trace context across the queue
@@ -107,15 +114,41 @@ An integration test asserts that the worker span's trace ID equals the request's
 
 ## Telemetry pipeline
 
+```
+apps ──OTLP/HTTP──▶ otel-collector ─┬─ traces ──▶ Tempo (48 h)
+                                    ├─ traces ──▶ span_metrics ──┐
+                                    ├─ traces ──▶ service_graph ─┤
+                                    ├─ metrics ◀─────────────────┘──▶ Prometheus (OTLP receiver, 7 d / 1 GB)
+                                    └─ logs ────▶ Loki (OTLP, 3 d)
+                                         Grafana: datasources linked by trace ID, "Lab overview" dashboard
+```
+
 - Apps send OTLP over HTTP (protobuf) to `otel-collector:4318` on the internal `lab` network only.
   The receiver is never published on a host port or the tunnel. Configuration is the standard
-  `OTEL_*` environment variables in both languages (service name, endpoint, resource attributes).
+  `OTEL_*` environment variables in both languages (service name, endpoint, resource attributes,
+  export intervals).
 - Spans are exported every 1 s (`OTEL_BSP_SCHEDULE_DELAY=1000`, default 5 s) so a visitor's trace is
-  available within a couple of seconds.
-- Collector: `memory_limiter` → `batch` → `otlp_grpc/tempo`. Span metrics (Prometheus) and logs
-  (Loki) are added in Milestone D.
+  available within a couple of seconds; metrics every 10 s.
+- **RED metrics come from spans**: the collector's `span_metrics` connector counts every span and
+  records its duration per service, span name, kind, status and the dimensions `lab.impl`,
+  `lab.scenario`, `http.response.status_code`, `lab.shed_reason`. No hand-written request metrics.
+  `service_graph` adds request counts and latency between services (Grafana's service map).
+- **App metrics** over OTLP: HTTP server/client duration, DB client operations and pool state,
+  runtime (Node event loop, GC, heap; Go goroutines, heap, GC), gateway guards (in-flight, backlog,
+  host load, limits, refusals), circuit breaker state and transitions.
+- **Container metrics without cAdvisor**: each service reads its own cgroup v2 files
+  (`cpu.stat`, `cpu.max`, `memory.current`, `memory.max`) and exports `lab.cgroup.*`: CPU used,
+  throttled periods and time, memory used and limits. Same names from Node and Go. No Docker socket.
+- **Logs**: pino (Node) and slog (Go) write JSON to stdout and send the same records over OTLP to
+  Loki with trace and span IDs. Loki keeps `trace_id` as structured metadata; Grafana turns it into
+  a link to the trace. Health-check requests are not logged.
+- Collector: `memory_limiter` → `batch` in every pipeline; 256 MiB limit.
 - Sampling: 100 % in the lab (low traffic); tail sampling (keep errors + slow) only if volume grows.
-- Grafana datasources are provisioned from files (`infra/grafana/provisioning`).
+- Grafana datasources and the "Lab overview" dashboard are provisioned from files
+  (`infra/grafana/provisioning`). Runtime plugin downloads are off (read-only rootfs).
+
+Correlation in Grafana: trace span → its logs (Loki, by trace ID) and its RED metrics; log line →
+its trace; dashboard log panel → trace; Tempo → service map.
 
 ### What is instrumented
 
@@ -126,8 +159,10 @@ An integration test asserts that the worker span's trace ID equals the request's
 | Outgoing HTTP | `instrumentation-undici` (gateway `fetch`), injects `traceparent` | — |
 | Postgres | `instrumentation-pg`, with connect spans: `pg-pool.connect` = wait for a pool connection, `pg.connect` = new physical connection | `otelpgx`: `pool.acquire` = wait for a pool connection |
 | Redis | `instrumentation-ioredis` | own `redisTracingHook` (~30 lines) |
-| Business spans | `order.validate`, `product.lookup` (`cache.hit`), `order.persist`, `order.enqueue` (producer), `order.process` (consumer), `order.fulfil` (simulated work), `gateway.guards` | same names and attributes |
-| Logs | `trace_id` / `span_id` added to every log line (pino mixin, slog handler) | same |
+| Outgoing HTTP to fake-payment | `instrumentation-undici` | `otelhttp.NewTransport` |
+| Metrics | SDK meter + `instrumentation-runtime-node`, own cgroup reader | SDK meter + contrib `runtime`, `otelpgx.RecordStats`, own cgroup reader |
+| Business spans | `order.validate`, `product.lookup` (`cache.hit`), `payment.authorize` (breaker attributes), `order.persist`, `order.enqueue` (producer), `order.process` (consumer, `lab.attempt`), `order.fulfil` (simulated work), `gateway.guards` | same names and attributes |
+| Logs | pino → stdout + OTLP (`instrumentation-pino`); `trace_id` / `span_id` on every line | slog → stdout + OTLP (`otelslog` bridge); same fields |
 
 Noise control:
 - `/healthz` is not traced (Docker health checks run every 10 s).
@@ -154,8 +189,14 @@ tunnel. In local development the gateway is published on `127.0.0.1:8088`.
   The fix is a transactional outbox; it may become its own experiment.
 - **At-least-once delivery**: a crash between update and `XACK` redelivers; the update is guarded
   (`WHERE status = 'queued'`) so it is idempotent.
-- **Redis has no persistence**: a Redis restart drops undelivered stream entries, so those orders
-  stay `queued`. Workers recreate their consumer group automatically (`NOGROUP` → create). A sweeper
+- **Redis has no persistence**: a Redis restart drops undelivered stream entries and scheduled
+  retries (`lab:{impl}:retry`), so those orders stay `queued`. Workers recreate their consumer group automatically (`NOGROUP` → create). A sweeper
   that re-enqueues old `queued` orders, or turning on AOF, would close the gap; a candidate experiment.
+- **Circuit breaker state is per process**: each API instance learns about the outage on its own
+  (5 failures each). Fine for one instance per implementation; a shared breaker (Redis) would be
+  needed with several replicas.
+- **Retries ack first, then re-add**: a failed attempt is acknowledged once its retry is in the
+  sorted set; the move back to the stream is atomic (Lua). A crash between `ZADD` and `XACK` can
+  produce one extra attempt, which the idempotent update absorbs.
 - **No auth on the order API**: it is a demo with synthetic data; protection is rate limits and
   periodic data reset, not user accounts.

@@ -1,6 +1,6 @@
 # Deployment
 
-## Repository layout (planned)
+## Repository layout
 
 ```
 observability-lab/
@@ -8,7 +8,8 @@ observability-lab/
 │   ├── web/            # Vite + React SPA (served by lab-web nginx)
 │   ├── gateway/        # Node 24 + Fastify
 │   ├── order-node/     # Node 24: API + worker (same image)
-│   └── order-go/       # Go 1.26: API + worker (same binary, MODE=api|worker)
+│   └── order-go/       # Go 1.26: API, worker and fake payment provider (MODE=api|worker|payment)
+├── packages/telemetry/ # shared OTel setup for the Node services (traces, metrics, logs, cgroup)
 ├── db/init/            # schema + seed SQL
 ├── infra/
 │   ├── compose.yaml          # base: all services, limits, lab network, no host ports
@@ -21,10 +22,10 @@ observability-lab/
 │   ├── loki.yaml
 │   ├── grafana/              # provisioned datasources + dashboards
 │   └── host/homelab-lab.slice
-├── tests/
-│   ├── contract/       # same tests against node and go
-│   └── load/           # k6 scripts
-├── scripts/            # smoke.sh, deploy.sh
+├── tests/contract/     # same tests against node and go (API contract + traces in Tempo)
+├── load/orders.js      # k6 profile (steady, stepped, mixed, direct-to-API)
+├── experiments/        # one folder per experiment: run.sh, analyse.ts, results/
+├── scripts/            # smoke.sh, experiment.sh, trace-stats.ts, waterfall.ts, lib/
 └── docs/
 ```
 
@@ -46,7 +47,9 @@ and a busy Mac do not trip the guards.
 - Gateway: `http://127.0.0.1:8088`
 - Grafana: `http://127.0.0.1:3000` (anonymous admin in dev only) → Explore → Tempo; paste the
   `X-Trace-Id` from a gateway response, or search by `order.id` / `lab.scenario`
+- Grafana dashboard: Dashboards → Observability Lab → Lab overview
 - Tempo API: `http://127.0.0.1:3200` (used by the tracing tests)
+- Prometheus: `http://127.0.0.1:9090`, Loki: `http://127.0.0.1:3100` (used by experiment analysis)
 - SPA dev server: `pnpm --filter web dev` (proxies `/api` to the gateway)
 
 The Mac is arm64 and the server amd64, so images are built on the server, as for Kelasin.
