@@ -196,10 +196,11 @@ POST /api/:impl/orders  gateway         674.7 ms  |█████████�
   damage.
 - **CPU throttling (for Milestone D):** both `none` runs show p99 spikes of 100–380 ms and a
   ~100 ms gap between the gateway's client span and the API's server span in the slowest traces.
-  The gateway is capped at `cpus: 0.25`; its cgroup shows 489 throttled periods out of 1314 (33 s
+  The gateway is capped at `cpus: 0.5`; its cgroup shows 489 throttled periods out of 1314 (33 s
   throttled) over the part B runs, and `order-api-node` 713 periods (53 s). CFS throttling stalls
   a process for the rest of a 100 ms period, which matches the size of the spikes. Next: put
-  `cpu.stat` throttling into the metrics (Milestone D) and decide whether the gateway needs 0.5 CPU.
+  `cpu.stat` throttling into the metrics (Milestone D) and check whether the throttled periods line
+  up with the slow requests before changing any limit.
 
 
 ## Observations to follow up
