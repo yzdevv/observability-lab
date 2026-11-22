@@ -97,8 +97,13 @@ export async function waitForTrace(traceId: string, until: (spans: Span[]) => bo
   throw new Error(`trace ${traceId} incomplete after ${timeoutMs / 1000} s: ${spans.map((s) => `${s.service}/${s.name}`).join(', ')}`);
 }
 
-/** The gateway's server span: the request as the client saw it. */
-export const rootSpan = (spans: Span[]) => spans.find((s) => s.parentSpanId === '' && s.service === 'gateway');
+/**
+ * The request as the client saw it: the gateway's server span, or for runs that call an order API
+ * directly (experiment 5), that API's root server span.
+ */
+export const rootSpan = (spans: Span[]) =>
+  spans.find((s) => s.parentSpanId === '' && s.service === 'gateway') ??
+  spans.find((s) => s.parentSpanId === '' && s.kind === 'SPAN_KIND_SERVER');
 
 /**
  * Time spent in a span itself, not in its children (overlapping children are merged).
@@ -219,4 +224,14 @@ async function searchChunk(filter: string, startSec: number, endSec: number, lim
     out.set(t.traceID, spans);
   }
   return out;
+}
+
+/** IDs of up to `limit` traces matching a TraceQL query in a window (seconds since the epoch). */
+export async function findTraceIds(q: string, startSec: number, endSec: number, limit = 5): Promise<string[]> {
+  const url = new URL(`${TEMPO}/api/search`);
+  url.search = new URLSearchParams({ q, start: String(Math.floor(startSec)), end: String(Math.ceil(endSec)), limit: String(limit), spss: '1' }).toString();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Tempo search returned ${res.status}: ${await res.text()}`);
+  const body = (await res.json()) as { traces?: { traceID: string }[] };
+  return (body.traces ?? []).map((t) => t.traceID);
 }

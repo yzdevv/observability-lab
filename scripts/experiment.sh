@@ -9,6 +9,7 @@
 #
 # Needs Docker (k6 runs in the grafana/k6 image) and the gateway reachable from a container.
 # STATUS_URL is read from the host to note the lab's guard state (default the dev gateway).
+# K6_NETWORK puts k6 on a Docker network (e.g. observability-lab_lab) to call services directly.
 set -euo pipefail
 
 K6_IMAGE="${K6_IMAGE:-grafana/k6:2.3.0}"
@@ -41,15 +42,20 @@ stats_pid=$!
 trap 'kill $stats_pid 2>/dev/null || true' EXIT
 
 status_before="$(lab_status)"
+cpu_before="$(node "$root/scripts/container-cpu.mjs" 2>/dev/null || echo null)"
 started="$(iso)"
 echo "== $impl / $scenario  ($*)  started $started"
 
+net=()
+[ -n "${K6_NETWORK:-}" ] && net=(--network "$K6_NETWORK")
+
 docker run --rm -i \
-  --add-host host.docker.internal:host-gateway \
+  --add-host host.docker.internal:host-gateway ${net[@]+"${net[@]}"} \
   -v "$root/load:/scripts:ro" -v "$out:/out" \
   "${envs[@]}" "$K6_IMAGE" run --quiet /scripts/orders.js
 
 ended="$(iso)"
+cpu_after="$(node "$root/scripts/container-cpu.mjs" 2>/dev/null || echo null)"
 status_after="$(lab_status)"
 
 cat >"$out/meta.json" <<EOF
@@ -62,7 +68,9 @@ cat >"$out/meta.json" <<EOF
   "started": "$started",
   "ended": "$ended",
   "labStatusBefore": $status_before,
-  "labStatusAfter": $status_after
+  "labStatusAfter": $status_after,
+  "containerCpuBefore": $cpu_before,
+  "containerCpuAfter": $cpu_after
 }
 EOF
 echo "   results in ${out#"$root"/} (per-step time windows are in summary.json)"

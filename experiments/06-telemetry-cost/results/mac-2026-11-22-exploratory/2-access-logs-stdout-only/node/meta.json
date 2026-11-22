@@ -1,0 +1,13 @@
+{
+  "impl": "node",
+  "scenario": "none",
+  "k6Env": "RATE=40 DURATION=40s WARMUP=0s",
+  "k6Image": "grafana/k6:2.3.0",
+  "commit": "8d319b4",
+  "started": "2026-11-22T10:21:50Z",
+  "ended": "2026-11-22T10:22:31Z",
+  "labStatusBefore": {"load1":3.04,"inflight":0,"backlog":{"node":0,"go":0},"limits":{"maxLoad1":16,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":1000000}},
+  "labStatusAfter": {"load1":2.84,"inflight":0,"backlog":{"node":0,"go":0},"limits":{"maxLoad1":16,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":1000000}},
+  "containerCpuBefore": {"at":"2026-11-22T10:21:49.957Z","cpuSeconds":{"grafana":124.105549,"prometheus":58.570718,"tempo":2022.715912,"order-api-node":3.169082,"otel-collector":43.34941,"worker-node":2.5958,"gateway":3.45361,"loki":117.852989,"postgres":2244.155034,"redis":2047.893685,"order-api-go":0.128246,"fake-payment":0.254984,"worker-go":0.166287}},
+  "containerCpuAfter": {"at":"2026-11-22T10:22:31.270Z","cpuSeconds":{"postgres":2248.431791,"order-api-go":0.464186,"fake-payment":2.026846,"prometheus":59.103986,"tempo":2026.239592,"worker-go":0.355432,"gateway":13.69376,"order-api-node":14.934303,"loki":118.809172,"worker-node":7.983209,"grafana":126.762338,"redis":2049.615888,"otel-collector":45.643933}}
+}

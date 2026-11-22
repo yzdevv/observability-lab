@@ -1,0 +1,394 @@
+[
+ {
+  "variant": "1-access-logs",
+  "impl": "node",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:19:41.392Z",
+   "to": "2026-11-22T10:20:21.392Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1418,
+   "status": {
+    "202": 1418,
+    "503": 174,
+    "504": 9
+   },
+   "errorRate": 11.4,
+   "latencyMs": {
+    "avg": 168,
+    "p50": 24.5,
+    "p90": 576.2,
+    "p95": 711.4,
+    "p99": 1832.5,
+    "max": 3154.4
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 7.5937089319175515,
+   "api": 8.49520924422236,
+   "worker": 3.9901036851967517,
+   "payment": 1.2412054965646473,
+   "collector": 2.2301118051217976,
+   "loki": 1.7854765771392873,
+   "tempo": 2.900747033104304,
+   "prometheus": 0.6079668956901925
+  },
+  "appTotal": 21.32022735790131
+ },
+ {
+  "variant": "1-access-logs",
+  "impl": "go",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:20:24.841Z",
+   "to": "2026-11-22T10:21:04.841Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1530,
+   "status": {
+    "202": 1530,
+    "503": 71
+   },
+   "errorRate": 4.4,
+   "latencyMs": {
+    "avg": 89.3,
+    "p50": 17.8,
+    "p90": 285.6,
+    "p95": 491.1,
+    "p99": 1007.5,
+    "max": 1185
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 7.351281074328544,
+   "api": 4.16812991880075,
+   "worker": 2.109935665209244,
+   "payment": 1.5951755153029357,
+   "collector": 2.2329075577763864,
+   "loki": 2.0960349781386696,
+   "tempo": 3.082915677701501,
+   "prometheus": 0.7494821986258565
+  },
+  "appTotal": 15.224522173641475
+ },
+ {
+  "variant": "2-access-logs-stdout-only",
+  "impl": "node",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:21:50.415Z",
+   "to": "2026-11-22T10:22:30.415Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1554,
+   "status": {
+    "202": 1554,
+    "503": 47
+   },
+   "errorRate": 2.9,
+   "latencyMs": {
+    "avg": 90.6,
+    "p50": 17.8,
+    "p90": 295.8,
+    "p95": 472.5,
+    "p99": 846.8,
+    "max": 1190.8
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 6.396096189881324,
+   "api": 7.348670206121175,
+   "worker": 3.3650274828232356,
+   "payment": 1.1067220487195504,
+   "collector": 1.4331811367895055,
+   "loki": 0.5972410993129357,
+   "tempo": 2.2009244222361106,
+   "prometheus": 0.33308432229856316
+  },
+  "appTotal": 18.216515927545284
+ },
+ {
+  "variant": "2-access-logs-stdout-only",
+  "impl": "go",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:22:32.333Z",
+   "to": "2026-11-22T10:23:12.333Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1595,
+   "status": {
+    "202": 1595,
+    "503": 6
+   },
+   "errorRate": 0.4,
+   "latencyMs": {
+    "avg": 44.3,
+    "p50": 13.2,
+    "p90": 97.3,
+    "p95": 245.4,
+    "p99": 507.4,
+    "max": 683.1
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 5.724221736414741,
+   "api": 3.6097445346658334,
+   "worker": 1.5337770143660212,
+   "payment": 1.3534815740162398,
+   "collector": 1.5193141786383526,
+   "loki": 0.8762610868207392,
+   "tempo": 2.1227613991255607,
+   "prometheus": 0.5321911305434105
+  },
+  "appTotal": 12.221224859462835
+ },
+ {
+  "variant": "3-no-access-logs",
+  "impl": "node",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:23:54.585Z",
+   "to": "2026-11-22T10:24:34.585Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1438,
+   "status": {
+    "202": 1438,
+    "503": 163
+   },
+   "errorRate": 10.2,
+   "latencyMs": {
+    "avg": 130.3,
+    "p50": 15.1,
+    "p90": 389.6,
+    "p95": 699,
+    "p99": 2030.2,
+    "max": 2322.3
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 5.650194878201123,
+   "api": 6.711097439100563,
+   "worker": 3.2790231105559022,
+   "payment": 0.9806976889444098,
+   "collector": 1.3752098688319776,
+   "loki": 1.0482854465958742,
+   "tempo": 4.767422236102384,
+   "prometheus": 0.47552654590880433
+  },
+  "appTotal": 16.621013116801997
+ },
+ {
+  "variant": "3-no-access-logs",
+  "impl": "go",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:24:36.607Z",
+   "to": "2026-11-22T10:25:16.607Z",
+   "requests": 1600,
+   "throughput": 40,
+   "accepted": 1556,
+   "status": {
+    "202": 1556,
+    "503": 44
+   },
+   "errorRate": 2.7,
+   "latencyMs": {
+    "avg": 74.7,
+    "p50": 15.1,
+    "p90": 220.7,
+    "p95": 426,
+    "p99": 972.1,
+    "max": 1219.3
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 5.942058124999999,
+   "api": 3.8917187500000003,
+   "worker": 1.9430037500000001,
+   "payment": 1.52539875,
+   "collector": 1.7389137499999974,
+   "loki": 1.216858125,
+   "tempo": 4.6629249999999445,
+   "prometheus": 0.8820031250000016
+  },
+  "appTotal": 13.302179375000001
+ },
+ {
+  "variant": "4-traces-only",
+  "impl": "node",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:25:59.830Z",
+   "to": "2026-11-22T10:26:39.830Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1577,
+   "status": {
+    "202": 1577,
+    "503": 24
+   },
+   "errorRate": 1.5,
+   "latencyMs": {
+    "avg": 61.6,
+    "p50": 13.8,
+    "p90": 185.9,
+    "p95": 328.3,
+    "p99": 624.2,
+    "max": 1324.7
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 5.224954403497813,
+   "api": 6.060406620861961,
+   "worker": 2.8446845721424108,
+   "payment": 0.9069150530918175,
+   "collector": 1.16019050593379,
+   "loki": 0.6751424109931333,
+   "tempo": 2.035631480324876,
+   "prometheus": 0.3049818863210487
+  },
+  "appTotal": 15.036960649594002
+ },
+ {
+  "variant": "4-traces-only",
+  "impl": "go",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:26:42.734Z",
+   "to": "2026-11-22T10:27:22.734Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1576,
+   "status": {
+    "202": 1576,
+    "503": 25
+   },
+   "errorRate": 1.6,
+   "latencyMs": {
+    "avg": 50.7,
+    "p50": 13.6,
+    "p90": 102.8,
+    "p95": 249.8,
+    "p99": 758.2,
+    "max": 1076.8
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 5.561221111805122,
+   "api": 3.4511792629606495,
+   "worker": 1.6415053091817615,
+   "payment": 1.3193660212367273,
+   "collector": 1.115036851967519,
+   "loki": 0.6467470331043118,
+   "tempo": 2.3122286071204567,
+   "prometheus": 0.5049331667707663
+  },
+  "appTotal": 11.97327170518426
+ },
+ {
+  "variant": "5-no-access-logs-gateway-1cpu",
+  "impl": "node",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:29:56.702Z",
+   "to": "2026-11-22T10:30:36.702Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1460,
+   "status": {
+    "202": 1460,
+    "503": 139,
+    "504": 2
+   },
+   "errorRate": 8.8,
+   "latencyMs": {
+    "avg": 147.2,
+    "p50": 25.1,
+    "p90": 453.9,
+    "p95": 717.3,
+    "p99": 1639.1,
+    "max": 2465
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 8.105007495315428,
+   "api": 8.72926046221112,
+   "worker": 4.459868207370394,
+   "payment": 1.2638107432854466,
+   "collector": 1.7157657713928791,
+   "loki": 1.5581286695815095,
+   "tempo": 4.988357276701984,
+   "prometheus": 1.0048282323547746
+  },
+  "appTotal": 22.55794690818239
+ },
+ {
+  "variant": "5-no-access-logs-gateway-1cpu",
+  "impl": "go",
+  "step": {
+   "step": "rate40",
+   "scenario": "none",
+   "targetRate": 40,
+   "duration": "40s",
+   "from": "2026-11-22T10:30:39.644Z",
+   "to": "2026-11-22T10:31:19.644Z",
+   "requests": 1601,
+   "throughput": 40,
+   "accepted": 1589,
+   "status": {
+    "202": 1589,
+    "503": 12
+   },
+   "errorRate": 0.7,
+   "latencyMs": {
+    "avg": 47.5,
+    "p50": 18.2,
+    "p90": 113.9,
+    "p95": 222.6,
+    "p99": 416.8,
+    "max": 685.5
+   }
+  },
+  "cpuMsPerRequest": {
+   "gateway": 7.5332198625858835,
+   "api": 4.491360399750156,
+   "worker": 2.443563397876327,
+   "payment": 1.8466402248594629,
+   "collector": 1.5722941911305393,
+   "loki": 1.59117676452217,
+   "tempo": 2.980142410993201,
+   "prometheus": 0.7705521549031864
+  },
+  "appTotal": 16.31478388507183
+ }
+]
