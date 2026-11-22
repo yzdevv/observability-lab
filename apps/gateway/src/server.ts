@@ -30,6 +30,9 @@ const shedCounter = meter.createCounter('lab.gateway.shed', { description: 'Requ
 
 const app = Fastify({
   logger: { base: { service: 'gateway' }, mixin: traceLogFields },
+  // Per-request access logs repeat what traces and span metrics already record, and cost CPU
+  // (each line is also exported over OTLP). Off unless LOG_REQUESTS=true; warnings/errors always log.
+  disableRequestLogging: process.env.LOG_REQUESTS !== 'true',
   bodyLimit: 4096,
 });
 

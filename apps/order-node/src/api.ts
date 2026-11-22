@@ -9,6 +9,9 @@ import { createPaymentClient } from './payment.ts';
 const deps = createDeps();
 const app = Fastify({
   logger: { base: { impl: IMPL, service: 'order-api-node' }, mixin: traceLogFields },
+  // Per-request access logs repeat what traces and span metrics already record, and cost CPU
+  // (each line is also exported over OTLP). Off unless LOG_REQUESTS=true; warnings/errors always log.
+  disableRequestLogging: process.env.LOG_REQUESTS !== 'true',
   bodyLimit: 4096,
 });
 deps.authorizePayment = createPaymentClient((msg, extra) => app.log.warn(extra, msg));

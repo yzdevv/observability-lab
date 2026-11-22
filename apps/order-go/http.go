@@ -17,6 +17,8 @@ import (
 
 const maxBodyBytes = 4096
 
+var logEveryRequest = os.Getenv("LOG_REQUESTS") == "true"
+
 func runAPI(ctx context.Context, s *Service) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /orders", s.handleCreateOrder)
@@ -154,7 +156,9 @@ func logRequests(next http.Handler) http.Handler {
 				span.SetAttributes(attribute.String("http.route", route))
 			}
 		}
-		if r.URL.Path == "/healthz" {
+		// Per-request access logs repeat what traces and span metrics already record and cost CPU;
+		// off unless LOG_REQUESTS=true. Server errors are logged in writeError either way.
+		if r.URL.Path == "/healthz" || !logEveryRequest {
 			return
 		}
 		slog.InfoContext(r.Context(), "request completed",
