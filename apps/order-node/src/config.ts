@@ -29,6 +29,11 @@ export const config = {
   retryPromoteMs: int('RETRY_PROMOTE_MS', 250),    // how often due retries move back to the stream
   reclaimIdleMs: int('RECLAIM_IDLE_MS', 60_000),   // unacked this long = its worker died; take it over
   reclaimEveryMs: int('RECLAIM_EVERY_MS', 15_000),
+  paymentUrl: process.env.PAYMENT_URL ?? 'http://fake-payment:8083',
+  dependencyTimeoutMs: int('DEPENDENCY_TIMEOUT_MS', 500),
+  breakerEnabled: process.env.BREAKER_ENABLED !== 'false',
+  breakerFailures: int('BREAKER_FAILURES', 5),
+  breakerOpenMs: int('BREAKER_OPEN_MS', 10_000),
 };
 
 export const keys = {

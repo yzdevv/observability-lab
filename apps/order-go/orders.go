@@ -20,7 +20,7 @@ import (
 )
 
 // worker-retry is handled by the worker; the others by the order API.
-var scenarios = []string{"none", "slow-db", "cache-miss", "worker-retry"}
+var scenarios = []string{"none", "slow-db", "cache-miss", "worker-retry", "dependency-timeout"}
 
 var (
 	productIDPattern = regexp.MustCompile(`^demo-\d{3}$`)
@@ -28,14 +28,16 @@ var (
 )
 
 type Service struct {
-	cfg Config
-	db  *pgxpool.Pool
-	rdb *redis.Client
+	cfg     Config
+	db      *pgxpool.Pool
+	rdb     *redis.Client
+	payment *paymentClient
 }
 
 type httpError struct {
 	status int
 	msg    string
+	reason string // optional machine-readable cause, e.g. "circuit-open"
 }
 
 func (e *httpError) Error() string { return e.msg }
@@ -118,6 +120,10 @@ type createOrderResult struct {
 func (s *Service) createOrder(ctx context.Context, in createOrderInput) (createOrderResult, error) {
 	p, err := s.getProduct(ctx, in.ProductID, in.Scenario)
 	if err != nil {
+		return createOrderResult{}, err
+	}
+	// No order without a payment authorisation; a failure here returns 503/504 to the client.
+	if err := s.payment.authorize(ctx, in.Scenario); err != nil {
 		return createOrderResult{}, err
 	}
 	orderID := uuid.NewString()

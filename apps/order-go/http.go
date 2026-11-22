@@ -116,7 +116,11 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 func writeError(w http.ResponseWriter, r *http.Request, err error) {
 	var he *httpError
 	if errors.As(err, &he) {
-		writeJSON(w, he.status, map[string]string{"error": he.msg})
+		body := map[string]string{"error": he.msg}
+		if he.reason != "" {
+			body["reason"] = he.reason
+		}
+		writeJSON(w, he.status, body)
 		return
 	}
 	slog.ErrorContext(r.Context(), "unhandled error", "method", r.Method, "path", r.URL.Path, "err", err)

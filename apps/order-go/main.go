@@ -34,9 +34,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	service := "order-api-go"
-	if cfg.Mode == "worker" {
-		service = "worker-go"
+	service := map[string]string{"api": "order-api-go", "worker": "worker-go", "payment": "fake-payment"}[cfg.Mode]
+	if service == "" {
+		service = "order-go"
 	}
 	stdout := traceLogHandler{slog.NewJSONHandler(os.Stdout, nil)}
 	slog.SetDefault(slog.New(stdout).With("service", service, "impl", impl))
@@ -58,6 +58,10 @@ func run() error {
 		defer cancel()
 		_ = shutdownTelemetry(flushCtx)
 	}()
+
+	if cfg.Mode == "payment" {
+		return runFakePayment(ctx, cfg)
+	}
 
 	poolCfg, err := pgxpool.ParseConfig(cfg.DatabaseURL)
 	if err != nil {
@@ -84,12 +88,15 @@ func run() error {
 	defer rdb.Close()
 
 	svc := &Service{cfg: cfg, db: db, rdb: rdb}
+	if cfg.Mode == "api" {
+		svc.payment = newPaymentClient(cfg)
+	}
 	switch cfg.Mode {
 	case "api":
 		return runAPI(ctx, svc)
 	case "worker":
 		return runWorker(ctx, svc)
 	default:
-		return fmt.Errorf("unknown MODE %q (want api or worker)", cfg.Mode)
+		return fmt.Errorf("unknown MODE %q (want api, worker or payment)", cfg.Mode)
 	}
 }

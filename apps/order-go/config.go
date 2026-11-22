@@ -23,6 +23,18 @@ type Config struct {
 	RetryPromote    time.Duration // how often due retries move back to the stream
 	ReclaimIdle     time.Duration // unacked this long = its worker died; take it over
 	ReclaimEvery    time.Duration
+
+	PaymentURL        string
+	DependencyTimeout time.Duration
+	BreakerEnabled    bool
+	BreakerFailures   int
+	BreakerOpen       time.Duration
+
+	// MODE=payment (the fake provider)
+	PaymentLatency time.Duration
+	DegradedDelay  time.Duration
+	DegradedCycle  time.Duration
+	DegradedOutage time.Duration
 }
 
 func loadConfig() (Config, error) {
@@ -56,8 +68,19 @@ func loadConfig() (Config, error) {
 		RetryPromote:    time.Duration(intEnv("RETRY_PROMOTE_MS", 250)) * time.Millisecond,
 		ReclaimIdle:     time.Duration(intEnv("RECLAIM_IDLE_MS", 60000)) * time.Millisecond,
 		ReclaimEvery:    time.Duration(intEnv("RECLAIM_EVERY_MS", 15000)) * time.Millisecond,
+
+		PaymentURL:        envOr("PAYMENT_URL", "http://fake-payment:8083"),
+		DependencyTimeout: time.Duration(intEnv("DEPENDENCY_TIMEOUT_MS", 500)) * time.Millisecond,
+		BreakerEnabled:    envOr("BREAKER_ENABLED", "true") != "false",
+		BreakerFailures:   intEnv("BREAKER_FAILURES", 5),
+		BreakerOpen:       time.Duration(intEnv("BREAKER_OPEN_MS", 10000)) * time.Millisecond,
+
+		PaymentLatency: time.Duration(intEnv("PAYMENT_LATENCY_MS", 2)) * time.Millisecond,
+		DegradedDelay:  time.Duration(intEnv("DEGRADED_DELAY_MS", 3000)) * time.Millisecond,
+		DegradedCycle:  time.Duration(intEnv("DEGRADED_CYCLE_S", 60)) * time.Second,
+		DegradedOutage: time.Duration(intEnv("DEGRADED_OUTAGE_S", 30)) * time.Second,
 	}
-	if cfg.DatabaseURL == "" {
+	if cfg.DatabaseURL == "" && cfg.Mode != "payment" {
 		errs = append(errs, fmt.Errorf("missing environment variable DATABASE_URL"))
 	}
 	if len(errs) > 0 {

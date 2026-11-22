@@ -4,7 +4,7 @@ import { IMPL, config, keys } from './config.ts';
 import type { Deps } from './deps.ts';
 
 // worker-retry is handled by the worker; the others by the order API.
-export const SCENARIOS = ['none', 'slow-db', 'cache-miss', 'worker-retry'] as const;
+export const SCENARIOS = ['none', 'slow-db', 'cache-miss', 'worker-retry', 'dependency-timeout'] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 
 const PRODUCT_ID = /^demo-\d{3}$/;
@@ -12,9 +12,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export class HttpError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  /** Optional machine-readable cause, e.g. "circuit-open". */
+  readonly reason: string | undefined;
+  constructor(status: number, message: string, reason?: string) {
     super(message);
     this.status = status;
+    this.reason = reason;
   }
 }
 
@@ -74,6 +77,8 @@ FROM pg_sleep($7::float8)`;
 
 export async function createOrder(deps: Deps, input: CreateOrderInput) {
   const product = await getProduct(deps, input.productId, input.scenario);
+  // No order without a payment authorisation; a failure here returns 503/504 to the client.
+  await deps.authorizePayment(input.scenario);
   const orderId = randomUUID();
   const delayS = input.scenario === 'slow-db' ? config.slowDbMs / 1000 : 0;
 

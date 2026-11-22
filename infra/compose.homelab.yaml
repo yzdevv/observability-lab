@@ -16,6 +16,7 @@ services:
   worker-node: *slice
   order-api-go: *slice
   worker-go: *slice
+  fake-payment: *slice
   otel-collector: *slice
   tempo:
     <<: *slice

@@ -49,7 +49,37 @@ Response `202`:
 ```
 
 Errors: `400` invalid body, `404` unknown product, `500` unexpected. Body always
-`{"error": "message"}`. Request body limit 4 KB.
+`{"error": "message"}`, plus `"reason"` where listed below. Request body limit 4 KB.
+
+Every order is authorised with the payment provider (`fake-payment`) before it is stored:
+
+| Status | When | Body |
+|---|---|---|
+| `504` | Payment call exceeded `DEPENDENCY_TIMEOUT_MS` (500 ms) | `{"error": "payment provider timed out", "reason": "dependency-timeout"}` |
+| `503` | Circuit breaker open: call not attempted | `{"error": "payment provider unavailable (circuit open)", "reason": "circuit-open"}` |
+
+No order is created in either case. The gateway passes these through unchanged.
+
+### Payment call and circuit breaker
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `DEPENDENCY_TIMEOUT_MS` | 500 | Timeout of the payment call |
+| `BREAKER_FAILURES` | 5 | Consecutive failures that open the breaker |
+| `BREAKER_OPEN_MS` | 10000 | How long it stays open before one probe call (half-open) |
+| `BREAKER_ENABLED` | true | `false` = timeout only, for the with/without comparison |
+
+Probe succeeds → closed; probe fails → open again. One breaker per endpoint and per API process:
+`payment` (`POST /authorize`) and `payment-degraded` (`POST /degraded/authorize`, used only by the
+`dependency-timeout` scenario), so one visitor's failures never open the breaker for normal orders.
+State changes are logged and exported as `lab.breaker.state` (0 closed, 1 half-open, 2 open) and
+`lab.breaker.transitions`. The `payment.authorize` span carries `lab.dependency`,
+`lab.breaker.state`, `lab.breaker.probe` and `lab.breaker.rejected`.
+
+`fake-payment` (the Go binary with `MODE=payment`): `/authorize` answers in 2–4 ms;
+`/degraded/authorize` has a scheduled outage: for the first `DEGRADED_OUTAGE_S` (30) seconds of
+every `DEGRADED_CYCLE_S` (60) it hangs for `DEGRADED_DELAY_MS` (3000) before answering, so the
+open → half-open → closed cycle happens on its own. `GET /status` reports the window.
 
 ### `GET /orders/{id}`
 
@@ -85,7 +115,7 @@ milliseconds. `404` if not found.
 | `slow-db` | Order API | The order `INSERT` takes `SLOW_DB_MS` longer (default 300 ms) |
 | `cache-miss` | Order API | Skip the Redis read; always query Postgres for the product |
 | `worker-retry` | Worker | `order.fulfil` fails on attempts 1–2, succeeds on attempt 3; the order completes with `attempts = 3` after ~1.5 s of backoff |
-| `dependency-timeout` | Order API | Call to a slow fake dependency hits its timeout; circuit breaker opens after repeated failures (Milestone D) |
+| `dependency-timeout` | Order API | Payment goes to the degraded provider: during its outage the call times out (`504`), after 5 timeouts the breaker opens (`503 circuit-open`), and it closes again once a probe succeeds |
 
 Unknown values are rejected with `400`.
 

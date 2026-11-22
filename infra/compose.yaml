@@ -35,6 +35,14 @@ x-depends: &depends
   postgres: { condition: service_healthy }
   redis: { condition: service_healthy }
 
+# Order APIs: payment call timeout and circuit breaker (docs/API-CONTRACT.md).
+x-payment-env: &payment-env
+  PAYMENT_URL: http://fake-payment:8083
+  DEPENDENCY_TIMEOUT_MS: ${DEPENDENCY_TIMEOUT_MS:-500}
+  BREAKER_ENABLED: ${BREAKER_ENABLED:-true}
+  BREAKER_FAILURES: "5"
+  BREAKER_OPEN_MS: "10000"
+
 services:
   postgres:
     <<: *service
@@ -110,10 +118,12 @@ services:
     image: observability-lab/order-node:local
     command: ["node", "--import", "@lab/telemetry/register", "src/api.ts"]
     environment:
-      <<: [*db-env, *otel-env]
+      <<: [*db-env, *otel-env, *payment-env]
       OTEL_SERVICE_NAME: order-api-node
       PORT: "8081"
-    depends_on: *depends
+    depends_on:
+      <<: *depends
+      fake-payment: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/healthz"]
       interval: 10s
@@ -141,11 +151,13 @@ services:
     build: { context: ../apps/order-go }
     image: observability-lab/order-go:local
     environment:
-      <<: [*db-env, *otel-env]
+      <<: [*db-env, *otel-env, *payment-env]
       OTEL_SERVICE_NAME: order-api-go
       MODE: api
       PORT: "8082"
-    depends_on: *depends
+    depends_on:
+      <<: *depends
+      fake-payment: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "/order-go", "healthcheck"]
       interval: 10s
@@ -166,6 +178,30 @@ services:
       order-api-go: { condition: service_started }   # same image; built by order-api-go
     mem_limit: 128m
     cpus: 0.5
+
+  # --- Fake payment provider (dependency for both order APIs) ------------
+  # The Go binary in MODE=payment: /authorize answers in a few ms; /degraded/authorize has a
+  # scheduled outage (first 30 s of every minute it hangs for 3 s) for the dependency-timeout scenario.
+  fake-payment:
+    <<: *app
+    build: { context: ../apps/order-go }
+    image: observability-lab/order-go:local
+    environment:
+      <<: *otel-env
+      OTEL_SERVICE_NAME: fake-payment
+      MODE: payment
+      PORT: "8083"
+      PAYMENT_LATENCY_MS: "2"
+      DEGRADED_DELAY_MS: "3000"
+      DEGRADED_CYCLE_S: "60"
+      DEGRADED_OUTAGE_S: "30"
+    healthcheck:
+      test: ["CMD", "/order-go", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 32m
+    cpus: 0.25
 
   # --- Telemetry ---------------------------------------------------------
   otel-collector:

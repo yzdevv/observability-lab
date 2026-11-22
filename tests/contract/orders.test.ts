@@ -102,6 +102,35 @@ for (const impl of ['node', 'go']) {
       assert.ok(Date.now() - started >= 1500, `completed after ${Date.now() - started} ms, expected >= 1500`);
     });
 
+    it('dependency-timeout times out or fails fast, and never blocks normal orders', async () => {
+      // The degraded provider is down for the first 30 s of each minute, so the outcome depends on
+      // the clock: check the shape of each possible answer, then that normal orders still work.
+      const seen: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const started = Date.now();
+        const res = await post(impl, { productId: 'demo-003', quantity: 1, scenario: 'dependency-timeout' });
+        const ms = Date.now() - started;
+        seen.push(`${res.status}:${res.body.reason ?? ''}`);
+        if (res.status === 504) {
+          assert.equal(res.body.reason, 'dependency-timeout');
+          assert.ok(ms >= 450 && ms < 2000, `timeout answered in ${ms} ms`);
+        } else if (res.status === 503) {
+          assert.equal(res.body.reason, 'circuit-open');
+          assert.ok(ms < 450, `circuit-open should fail fast, took ${ms} ms`);
+        } else {
+          assert.equal(res.status, 202, `unexpected ${res.status} ${JSON.stringify(res.body)}`);
+        }
+      }
+      // Five timeouts in a row must open the breaker for the next call.
+      const firstOpen = seen.findIndex((x) => x === '503:circuit-open');
+      if (seen.slice(0, 5).every((x) => x === '504:dependency-timeout')) assert.equal(seen[5], '503:circuit-open');
+      if (firstOpen >= 0) {
+        // The degraded endpoint has its own breaker: normal orders are unaffected.
+        const normal = await post(impl, { productId: 'demo-003', quantity: 1 });
+        assert.equal(normal.status, 202);
+      }
+    });
+
     it('cache-miss still creates the order', async () => {
       const res = await post(impl, { productId: 'demo-004', quantity: 1, scenario: 'cache-miss' });
       assert.equal(res.status, 202);

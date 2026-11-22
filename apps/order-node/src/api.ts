@@ -4,17 +4,21 @@ import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab
 import { IMPL, config } from './config.ts';
 import { closeDeps, createDeps } from './deps.ts';
 import { HttpError, createOrder, getOrder, parseCreateOrder, parseOrderId } from './orders.ts';
+import { createPaymentClient } from './payment.ts';
 
 const deps = createDeps();
 const app = Fastify({
   logger: { base: { impl: IMPL, service: 'order-api-node' }, mixin: traceLogFields },
   bodyLimit: 4096,
 });
+deps.authorizePayment = createPaymentClient((msg, extra) => app.log.warn(extra, msg));
 
 app.addHook('onRequest', routeSpanHook);
 
 app.setErrorHandler((err, req, reply) => {
-  if (err instanceof HttpError) return reply.code(err.status).send({ error: err.message });
+  if (err instanceof HttpError) {
+    return reply.code(err.status).send(err.reason ? { error: err.message, reason: err.reason } : { error: err.message });
+  }
   const status = (err as { statusCode?: number }).statusCode;
   if (status && status >= 400 && status < 500) {
     return reply.code(status).send({ error: (err as Error).message });
