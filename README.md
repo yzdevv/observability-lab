@@ -30,6 +30,20 @@ curl -X POST http://127.0.0.1:8088/api/go/orders \
   -d '{"productId":"demo-001","quantity":2,"scenario":"slow-db"}'
 ```
 
+Then look at it from the telemetry side:
+
+```sh
+node scripts/waterfall.ts <trace-id>                      # one trace as a text waterfall
+scripts/experiment.sh /tmp/run go slow-db RATE=4          # k6 load run (Docker), ~90 s
+node scripts/trace-stats.ts --run /tmp/run                # which span the time goes to
+```
+
+## Results so far
+
+Experiment 1 (slow database): the injected 300 ms `INSERT` is 98 % of the response in both
+languages. Under load it caps each API at ~33 orders/s, and the trace shows the new cost as waits
+for a pool connection. [Write-up](docs/EXPERIMENTS.md#1-slow-database--2026-11-22-mac-docker-desktop).
+
 ## Docs
 
 Design, contract, resource budget and experiments are in [`docs/`](docs/README.md).
@@ -38,7 +52,7 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 
 - [x] Milestone A — core services (Node + Go), gateway guards, contract tests
 - [x] Milestone B — distributed tracing (OpenTelemetry → Collector → Tempo → Grafana)
-- [ ] Milestone C — slow database visible in traces
+- [x] Milestone C — slow database visible in traces (experiment 1, baseline vs degraded, pool saturation under load)
 - [ ] Milestone D — metrics, logs, more failure scenarios, load tests
 - [ ] Milestone E — public demo
 - [ ] Milestone F — deployment and case study

@@ -124,7 +124,7 @@ An integration test asserts that the worker span's trace ID equals the request's
 | SDK setup | `packages/telemetry`, loaded with `node --import @lab/telemetry/register` before the app | `telemetry.go` (`setupTelemetry`) |
 | Incoming HTTP | `instrumentation-http`; span renamed to the route template by a Fastify hook | `otelhttp`; span renamed to `r.Pattern` after routing |
 | Outgoing HTTP | `instrumentation-undici` (gateway `fetch`), injects `traceparent` | — |
-| Postgres | `instrumentation-pg` | `otelpgx` (also records `pool.acquire`, useful to see pool waits) |
+| Postgres | `instrumentation-pg`, with connect spans: `pg-pool.connect` = wait for a pool connection, `pg.connect` = new physical connection | `otelpgx`: `pool.acquire` = wait for a pool connection |
 | Redis | `instrumentation-ioredis` | own `redisTracingHook` (~30 lines) |
 | Business spans | `order.validate`, `product.lookup` (`cache.hit`), `order.persist`, `order.enqueue` (producer), `order.process` (consumer), `order.fulfil` (simulated work), `gateway.guards` | same names and attributes |
 | Logs | `trace_id` / `span_id` added to every log line (pino mixin, slog handler) | same |

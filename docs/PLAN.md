@@ -61,6 +61,10 @@ Node and Go; an integration test asserts the worker span shares the request's tr
 
 **Done when:** the slow `INSERT` span is the obvious culprit in the waterfall.
 
+**Result (2026-11-22):** done. The `INSERT` is 98 % of the response in both languages, found by
+`scripts/trace-stats.ts` from Tempo alone. Under load the same query saturates the DB pool at
+~33 orders/s, which is visible as pool-wait spans. See EXPERIMENTS.md, experiment 1.
+
 ### D — Metrics, logs, more scenarios (3 days)
 - Prometheus (span metrics + runtime), Loki over OTLP, log ↔ trace links in Grafana.
 - Scenarios `cache-miss`, `worker-retry`, `dependency-timeout` (timeout + circuit breaker, so recovery
