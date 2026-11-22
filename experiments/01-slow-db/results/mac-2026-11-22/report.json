@@ -1,0 +1,2268 @@
+{
+ "partA": [
+  {
+   "impl": "node",
+   "scenario": "none",
+   "medianRun": "round1-node-none",
+   "k6": {
+    "step": "rate4",
+    "targetRate": 4,
+    "duration": "60s",
+    "from": "2026-11-22T07:54:39.008Z",
+    "to": "2026-11-22T07:55:39.008Z",
+    "requests": 241,
+    "throughput": 4,
+    "accepted": 241,
+    "status": {
+     "202": 241,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 13.1,
+     "p50": 11.3,
+     "p90": 18.1,
+     "p95": 21.3,
+     "p99": 39.7,
+     "max": 147.7
+    }
+   },
+   "p95AcrossRuns": [
+    19.7,
+    21.3,
+    21.5
+   ],
+   "errors": 0,
+   "total": 722,
+   "traces": {
+    "impl": "node",
+    "scenario": "none",
+    "window": {
+     "from": "2026-11-22T07:54:39.008Z",
+     "to": "2026-11-22T07:55:39.008Z"
+    },
+    "tracesFound": 241,
+    "tracesSampled": 241,
+    "request": {
+     "p50": 7.926,
+     "p95": 16.154,
+     "p99": 33.686
+    },
+    "typical": {
+     "traceId": "a9d3fc61e825a63133a0c22ac733c439",
+     "ms": 7.926
+    },
+    "slowest": {
+     "traceId": "f4377d97ad95ef2672ea00567ea8a743",
+     "ms": 143.39
+    },
+    "culprit": {
+     "service": "gateway",
+     "span": "POST /api/:impl/orders",
+     "async": false,
+     "traces": 241,
+     "selfP50": 2.0618691406250003,
+     "selfP95": 4.123103515625001,
+     "totalP50": 7.926,
+     "totalP95": 16.154
+    },
+    "spans": [
+     {
+      "service": "gateway",
+      "span": "POST /api/:impl/orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 2.0618691406250003,
+      "selfP95": 4.123103515625001,
+      "totalP50": 7.926,
+      "totalP95": 16.154
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg.query:INSERT lab",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.431,
+      "selfP95": 3.535,
+      "totalP50": 1.431,
+      "totalP95": 3.535
+     },
+     {
+      "service": "order-api-node",
+      "span": "POST /orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.4279609375,
+      "selfP95": 2.6521230468750003,
+      "totalP50": 4.056,
+      "totalP95": 8.547
+     },
+     {
+      "service": "gateway",
+      "span": "POST",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.0760917968749997,
+      "selfP95": 3.9999804687499996,
+      "totalP50": 5.286,
+      "totalP95": 11.757
+     },
+     {
+      "service": "order-api-node",
+      "span": "get",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.36,
+      "selfP95": 1.63,
+      "totalP50": 0.36,
+      "totalP95": 1.63
+     },
+     {
+      "service": "order-api-node",
+      "span": "xadd",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.329,
+      "selfP95": 1.487,
+      "totalP50": 0.329,
+      "totalP95": 1.487
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.persist",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.24599218749999996,
+      "selfP95": 1.00001171875,
+      "totalP50": 1.695,
+      "totalP95": 4.22
+     },
+     {
+      "service": "order-api-node",
+      "span": "product.lookup",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.102912109375,
+      "selfP95": 0.645115234375,
+      "totalP50": 0.49,
+      "totalP95": 2.056
+     },
+     {
+      "service": "gateway",
+      "span": "gateway.guards",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.075,
+      "selfP95": 1.744,
+      "totalP50": 0.075,
+      "totalP95": 2.671
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg-pool.connect",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.067,
+      "selfP95": 0.204,
+      "totalP50": 0.067,
+      "totalP95": 0.204
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.enqueue",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.06596289062499999,
+      "selfP95": 0.416,
+      "totalP50": 0.419,
+      "totalP95": 1.597
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.validate",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.044,
+      "selfP95": 0.135,
+      "totalP50": 0.044,
+      "totalP95": 0.135
+     },
+     {
+      "service": "gateway",
+      "span": "xinfo",
+      "async": false,
+      "traces": 51,
+      "selfP50": 0,
+      "selfP95": 0.99,
+      "totalP50": 0,
+      "totalP95": 0.99
+     },
+     {
+      "service": "order-api-node",
+      "span": "set",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg.query:SELECT lab",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "worker-node",
+      "span": "order.fulfil",
+      "async": true,
+      "traces": 241,
+      "selfP50": 22.217,
+      "selfP95": 29.258,
+      "totalP50": 22.217,
+      "totalP95": 29.258
+     },
+     {
+      "service": "worker-node",
+      "span": "pg.query:UPDATE lab",
+      "async": true,
+      "traces": 241,
+      "selfP50": 1.45,
+      "selfP95": 3.805,
+      "totalP50": 1.45,
+      "totalP95": 3.805
+     },
+     {
+      "service": "worker-node",
+      "span": "order.process",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.9061347656250014,
+      "selfP95": 1.6240917968749997,
+      "totalP50": 25.407,
+      "totalP95": 32.975
+     },
+     {
+      "service": "worker-node",
+      "span": "xack",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.275,
+      "selfP95": 0.908,
+      "totalP50": 0.275,
+      "totalP95": 0.908
+     },
+     {
+      "service": "worker-node",
+      "span": "pg-pool.connect",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.115,
+      "selfP95": 0.433,
+      "totalP50": 0.115,
+      "totalP95": 0.433
+     }
+    ]
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "medianRun": "round1-node-slow-db",
+   "k6": {
+    "step": "rate4",
+    "targetRate": 4,
+    "duration": "60s",
+    "from": "2026-11-22T07:56:10.221Z",
+    "to": "2026-11-22T07:57:10.221Z",
+    "requests": 241,
+    "throughput": 4,
+    "accepted": 241,
+    "status": {
+     "202": 241,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 317.6,
+     "p50": 316.4,
+     "p90": 324.8,
+     "p95": 329.3,
+     "p99": 344.8,
+     "max": 353.1
+    }
+   },
+   "p95AcrossRuns": [
+    328.3,
+    329.3,
+    330.2
+   ],
+   "errors": 0,
+   "total": 722,
+   "traces": {
+    "impl": "node",
+    "scenario": "slow-db",
+    "window": {
+     "from": "2026-11-22T07:56:10.221Z",
+     "to": "2026-11-22T07:57:10.221Z"
+    },
+    "tracesFound": 241,
+    "tracesSampled": 241,
+    "request": {
+     "p50": 312.671,
+     "p95": 323.746,
+     "p99": 342.255
+    },
+    "typical": {
+     "traceId": "4bdda8acd108b14c99a4ae06de30992d",
+     "ms": 312.671
+    },
+    "slowest": {
+     "traceId": "e6d7d9ecd4aa95e35aea406c12a8f339",
+     "ms": 345.84
+    },
+    "culprit": {
+     "service": "order-api-node",
+     "span": "pg.query:INSERT lab",
+     "async": false,
+     "traces": 241,
+     "selfP50": 305.414,
+     "selfP95": 313.59,
+     "totalP50": 305.414,
+     "totalP95": 313.59
+    },
+    "spans": [
+     {
+      "service": "order-api-node",
+      "span": "pg.query:INSERT lab",
+      "async": false,
+      "traces": 241,
+      "selfP50": 305.414,
+      "selfP95": 313.59,
+      "totalP50": 305.414,
+      "totalP95": 313.59
+     },
+     {
+      "service": "gateway",
+      "span": "POST /api/:impl/orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 2.0329082031249754,
+      "selfP95": 3.9920527343750223,
+      "totalP50": 312.671,
+      "totalP95": 323.746
+     },
+     {
+      "service": "order-api-node",
+      "span": "POST /orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.5159746093750073,
+      "selfP95": 2.5618203125000036,
+      "totalP50": 308.68,
+      "totalP95": 317.956
+     },
+     {
+      "service": "gateway",
+      "span": "POST",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.122957031249996,
+      "selfP95": 3.2699531249999723,
+      "totalP50": 309.965,
+      "totalP95": 319.506
+     },
+     {
+      "service": "order-api-node",
+      "span": "xadd",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.526,
+      "selfP95": 1.351,
+      "totalP50": 0.526,
+      "totalP95": 1.351
+     },
+     {
+      "service": "order-api-node",
+      "span": "get",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.351,
+      "selfP95": 1.767,
+      "totalP50": 0.351,
+      "totalP95": 1.767
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.persist",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.2920742187499741,
+      "selfP95": 0.9999667968750146,
+      "totalP50": 305.722,
+      "totalP95": 313.967
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.enqueue",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.12199609374999998,
+      "selfP95": 0.796,
+      "totalP50": 0.666,
+      "totalP95": 1.552
+     },
+     {
+      "service": "order-api-node",
+      "span": "product.lookup",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.10203710937499999,
+      "selfP95": 0.648044921875,
+      "totalP50": 0.479,
+      "totalP95": 1.937
+     },
+     {
+      "service": "gateway",
+      "span": "gateway.guards",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.068,
+      "selfP95": 1.478,
+      "totalP50": 0.068,
+      "totalP95": 2.4
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg-pool.connect",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.056,
+      "selfP95": 0.165,
+      "totalP50": 0.056,
+      "totalP95": 0.165
+     },
+     {
+      "service": "order-api-node",
+      "span": "order.validate",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.037,
+      "selfP95": 0.082,
+      "totalP50": 0.037,
+      "totalP95": 0.082
+     },
+     {
+      "service": "gateway",
+      "span": "xinfo",
+      "async": false,
+      "traces": 51,
+      "selfP50": 0,
+      "selfP95": 1.241,
+      "totalP50": 0,
+      "totalP95": 1.241
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg.query:SELECT lab",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "order-api-node",
+      "span": "set",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "order-api-node",
+      "span": "pg.connect",
+      "async": false,
+      "traces": 1,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "worker-node",
+      "span": "order.fulfil",
+      "async": true,
+      "traces": 241,
+      "selfP50": 23.514,
+      "selfP95": 29.43,
+      "totalP50": 23.514,
+      "totalP95": 29.43
+     },
+     {
+      "service": "worker-node",
+      "span": "pg.query:UPDATE lab",
+      "async": true,
+      "traces": 241,
+      "selfP50": 1.799,
+      "selfP95": 4.532,
+      "totalP50": 1.799,
+      "totalP95": 4.532
+     },
+     {
+      "service": "worker-node",
+      "span": "order.process",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.9999160156250007,
+      "selfP95": 1.9380546874999993,
+      "totalP50": 26.699,
+      "totalP95": 34.726
+     },
+     {
+      "service": "worker-node",
+      "span": "xack",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.314,
+      "selfP95": 1.18,
+      "totalP50": 0.314,
+      "totalP95": 1.18
+     },
+     {
+      "service": "worker-node",
+      "span": "pg-pool.connect",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.132,
+      "selfP95": 0.366,
+      "totalP50": 0.132,
+      "totalP95": 0.366
+     }
+    ]
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "medianRun": "round2-go-none",
+   "k6": {
+    "step": "rate4",
+    "targetRate": 4,
+    "duration": "60s",
+    "from": "2026-11-22T08:03:46.946Z",
+    "to": "2026-11-22T08:04:46.946Z",
+    "requests": 241,
+    "throughput": 4,
+    "accepted": 241,
+    "status": {
+     "202": 241,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 10.4,
+     "p50": 9.8,
+     "p90": 13.9,
+     "p95": 18.2,
+     "p99": 25.8,
+     "max": 47.9
+    }
+   },
+   "p95AcrossRuns": [
+    17,
+    18.2,
+    18.8
+   ],
+   "errors": 0,
+   "total": 721,
+   "traces": {
+    "impl": "go",
+    "scenario": "none",
+    "window": {
+     "from": "2026-11-22T08:03:46.946Z",
+     "to": "2026-11-22T08:04:46.946Z"
+    },
+    "tracesFound": 241,
+    "tracesSampled": 241,
+    "request": {
+     "p50": 6.127,
+     "p95": 11.189,
+     "p99": 20.382
+    },
+    "typical": {
+     "traceId": "119b46c8f82a9025f925ae21e40a99ca",
+     "ms": 6.127
+    },
+    "slowest": {
+     "traceId": "a171cc7c42254fdbdde2947db4d9e256",
+     "ms": 43.316
+    },
+    "culprit": {
+     "service": "gateway",
+     "span": "POST /api/:impl/orders",
+     "async": false,
+     "traces": 241,
+     "selfP50": 1.929138671875,
+     "selfP95": 3.317025390625,
+     "totalP50": 6.127,
+     "totalP95": 11.189
+    },
+    "spans": [
+     {
+      "service": "gateway",
+      "span": "POST /api/:impl/orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.929138671875,
+      "selfP95": 3.317025390625,
+      "totalP50": 6.127,
+      "totalP95": 11.189
+     },
+     {
+      "service": "order-api-go",
+      "span": "INSERT",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.412,
+      "selfP95": 3.194,
+      "totalP50": 1.412,
+      "totalP95": 3.194
+     },
+     {
+      "service": "gateway",
+      "span": "POST",
+      "async": false,
+      "traces": 241,
+      "selfP50": 1.270078125,
+      "selfP95": 2.5339687499999997,
+      "totalP50": 3.59,
+      "totalP95": 7.216
+     },
+     {
+      "service": "order-api-go",
+      "span": "xadd",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.312,
+      "selfP95": 0.685,
+      "totalP50": 0.312,
+      "totalP95": 0.685
+     },
+     {
+      "service": "order-api-go",
+      "span": "get",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.29,
+      "selfP95": 0.565,
+      "totalP50": 0.29,
+      "totalP95": 0.565
+     },
+     {
+      "service": "order-api-go",
+      "span": "POST /orders",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.20715039062499985,
+      "selfP95": 0.4099082031250001,
+      "totalP50": 2.54,
+      "totalP95": 5.316
+     },
+     {
+      "service": "gateway",
+      "span": "gateway.guards",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.062,
+      "selfP95": 1.9998964843749998,
+      "totalP50": 0.062,
+      "totalP95": 2.449
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.persist",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.05683593749999982,
+      "selfP95": 0.16089062499999995,
+      "totalP50": 1.514,
+      "totalP95": 3.43
+     },
+     {
+      "service": "order-api-go",
+      "span": "product.lookup",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.042015625,
+      "selfP95": 0.12698828124999995,
+      "totalP50": 0.336,
+      "totalP95": 0.831
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.enqueue",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.03891601562500002,
+      "selfP95": 0.09402148437500002,
+      "totalP50": 0.355,
+      "totalP95": 0.797
+     },
+     {
+      "service": "order-api-go",
+      "span": "pool.acquire",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.006,
+      "selfP95": 0.033,
+      "totalP50": 0.006,
+      "totalP95": 0.033
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.validate",
+      "async": false,
+      "traces": 241,
+      "selfP50": 0.005,
+      "selfP95": 0.018,
+      "totalP50": 0.005,
+      "totalP95": 0.018
+     },
+     {
+      "service": "gateway",
+      "span": "xinfo",
+      "async": false,
+      "traces": 53,
+      "selfP50": 0,
+      "selfP95": 0.988,
+      "totalP50": 0,
+      "totalP95": 0.988
+     },
+     {
+      "service": "order-api-go",
+      "span": "set",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "order-api-go",
+      "span": "SELECT",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "worker-go",
+      "span": "order.fulfil",
+      "async": true,
+      "traces": 241,
+      "selfP50": 21.22,
+      "selfP95": 27.311,
+      "totalP50": 21.22,
+      "totalP95": 27.311
+     },
+     {
+      "service": "worker-go",
+      "span": "UPDATE",
+      "async": true,
+      "traces": 241,
+      "selfP50": 1.097,
+      "selfP95": 2.524,
+      "totalP50": 1.097,
+      "totalP95": 2.524
+     },
+     {
+      "service": "worker-go",
+      "span": "xack",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.23,
+      "selfP95": 0.725,
+      "totalP50": 0.23,
+      "totalP95": 0.725
+     },
+     {
+      "service": "worker-go",
+      "span": "order.process",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.1781718750000003,
+      "selfP95": 0.47505468749999835,
+      "totalP50": 23.118,
+      "totalP95": 29.331
+     },
+     {
+      "service": "worker-go",
+      "span": "pool.acquire",
+      "async": true,
+      "traces": 241,
+      "selfP50": 0.01,
+      "selfP95": 0.039,
+      "totalP50": 0.01,
+      "totalP95": 0.039
+     }
+    ]
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "medianRun": "round3-go-slow-db",
+   "k6": {
+    "step": "rate4",
+    "targetRate": 4,
+    "duration": "60s",
+    "from": "2026-11-22T08:11:23.819Z",
+    "to": "2026-11-22T08:12:23.819Z",
+    "requests": 241,
+    "throughput": 4,
+    "accepted": 241,
+    "status": {
+     "202": 241,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 315.5,
+     "p50": 314.3,
+     "p90": 321.7,
+     "p95": 324.2,
+     "p99": 330,
+     "max": 431.6
+    }
+   },
+   "p95AcrossRuns": [
+    323.1,
+    324.2,
+    338.3
+   ],
+   "errors": 0,
+   "total": 723,
+   "traces": {
+    "impl": "go",
+    "scenario": "slow-db",
+    "window": {
+     "from": "2026-11-22T08:11:23.819Z",
+     "to": "2026-11-22T08:12:23.819Z"
+    },
+    "tracesFound": 240,
+    "tracesSampled": 240,
+    "request": {
+     "p50": 310.646,
+     "p95": 319.555,
+     "p99": 325.635
+    },
+    "typical": {
+     "traceId": "e6488abe73d76392fff710d414d88f31",
+     "ms": 310.646
+    },
+    "slowest": {
+     "traceId": "f8593ea32d573c3bd9f5da19a7ea84a6",
+     "ms": 415.704
+    },
+    "culprit": {
+     "service": "order-api-go",
+     "span": "INSERT",
+     "async": false,
+     "traces": 240,
+     "selfP50": 304.707,
+     "selfP95": 313.712,
+     "totalP50": 304.707,
+     "totalP95": 313.712
+    },
+    "spans": [
+     {
+      "service": "order-api-go",
+      "span": "INSERT",
+      "async": false,
+      "traces": 240,
+      "selfP50": 304.707,
+      "selfP95": 313.712,
+      "totalP50": 304.707,
+      "totalP95": 313.712
+     },
+     {
+      "service": "gateway",
+      "span": "POST /api/:impl/orders",
+      "async": false,
+      "traces": 240,
+      "selfP50": 2.056064453124975,
+      "selfP95": 3.4519316406249914,
+      "totalP50": 310.646,
+      "totalP95": 319.555
+     },
+     {
+      "service": "gateway",
+      "span": "POST",
+      "async": false,
+      "traces": 240,
+      "selfP50": 1.387845703124981,
+      "selfP95": 2.310931640624972,
+      "totalP50": 307.665,
+      "totalP95": 316.401
+     },
+     {
+      "service": "order-api-go",
+      "span": "xadd",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.455,
+      "selfP95": 1.186,
+      "totalP50": 0.455,
+      "totalP95": 1.186
+     },
+     {
+      "service": "order-api-go",
+      "span": "get",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.31,
+      "selfP95": 0.626,
+      "totalP50": 0.31,
+      "totalP95": 0.626
+     },
+     {
+      "service": "order-api-go",
+      "span": "POST /orders",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.26022656250000864,
+      "selfP95": 0.5419804687500118,
+      "totalP50": 306.315,
+      "totalP95": 314.91
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.persist",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.07583593750001683,
+      "selfP95": 0.2281171875000041,
+      "totalP50": 304.786,
+      "totalP95": 313.816
+     },
+     {
+      "service": "gateway",
+      "span": "gateway.guards",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.065,
+      "selfP95": 1.637,
+      "totalP50": 0.065,
+      "totalP95": 2.218
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.enqueue",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.05087890625000002,
+      "selfP95": 0.165935546875,
+      "totalP50": 0.527,
+      "totalP95": 1.272
+     },
+     {
+      "service": "order-api-go",
+      "span": "product.lookup",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.044015625,
+      "selfP95": 0.12819531249999994,
+      "totalP50": 0.371,
+      "totalP95": 1.096
+     },
+     {
+      "service": "order-api-go",
+      "span": "pool.acquire",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.007,
+      "selfP95": 0.041,
+      "totalP50": 0.007,
+      "totalP95": 0.041
+     },
+     {
+      "service": "order-api-go",
+      "span": "order.validate",
+      "async": false,
+      "traces": 240,
+      "selfP50": 0.005,
+      "selfP95": 0.023,
+      "totalP50": 0.005,
+      "totalP95": 0.023
+     },
+     {
+      "service": "order-api-go",
+      "span": "SELECT",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "order-api-go",
+      "span": "set",
+      "async": false,
+      "traces": 10,
+      "selfP50": 0,
+      "selfP95": 0,
+      "totalP50": 0,
+      "totalP95": 0
+     },
+     {
+      "service": "gateway",
+      "span": "xinfo",
+      "async": false,
+      "traces": 51,
+      "selfP50": 0,
+      "selfP95": 0.795,
+      "totalP50": 0,
+      "totalP95": 0.795
+     },
+     {
+      "service": "worker-go",
+      "span": "order.fulfil",
+      "async": true,
+      "traces": 240,
+      "selfP50": 21.333,
+      "selfP95": 27.49,
+      "totalP50": 21.333,
+      "totalP95": 27.49
+     },
+     {
+      "service": "worker-go",
+      "span": "UPDATE",
+      "async": true,
+      "traces": 240,
+      "selfP50": 1.361,
+      "selfP95": 4.118,
+      "totalP50": 1.361,
+      "totalP95": 4.118
+     },
+     {
+      "service": "worker-go",
+      "span": "xack",
+      "async": true,
+      "traces": 240,
+      "selfP50": 0.262,
+      "selfP95": 0.837,
+      "totalP50": 0.262,
+      "totalP95": 0.837
+     },
+     {
+      "service": "worker-go",
+      "span": "order.process",
+      "async": true,
+      "traces": 240,
+      "selfP50": 0.20494726562500176,
+      "selfP95": 0.508201171875001,
+      "totalP50": 24.215,
+      "totalP95": 31.163
+     },
+     {
+      "service": "worker-go",
+      "span": "pool.acquire",
+      "async": true,
+      "traces": 240,
+      "selfP50": 0.014,
+      "selfP95": 0.055,
+      "totalP50": 0.014,
+      "totalP95": 0.055
+     }
+    ]
+   }
+  }
+ ],
+ "partB": [
+  {
+   "impl": "node",
+   "scenario": "none",
+   "step": {
+    "step": "rate10",
+    "targetRate": 10,
+    "duration": "30s",
+    "from": "2026-11-22T08:12:52.181Z",
+    "to": "2026-11-22T08:13:22.181Z",
+    "requests": 301,
+    "throughput": 10,
+    "accepted": 301,
+    "status": {
+     "202": 301,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 10.9,
+     "p50": 9,
+     "p90": 14.1,
+     "p95": 16.2,
+     "p99": 57.4,
+     "max": 155.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 300,
+    "selfP50": 0.042,
+    "selfP95": 0.093,
+    "totalP50": 0.042,
+    "totalP95": 0.093
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 300,
+    "selfP50": 1.7780996093750003,
+    "selfP95": 3.4789960937499984,
+    "totalP50": 6.001,
+    "totalP95": 10.981
+   },
+   "typical": {
+    "traceId": "af808ab24e09237cde98107ebdc6d45a",
+    "ms": 6.001
+   },
+   "slowest": {
+    "traceId": "b50434def22f258e5ff34c31db1186ed",
+    "ms": 100.382
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "none",
+   "step": {
+    "step": "rate20",
+    "targetRate": 20,
+    "duration": "30s",
+    "from": "2026-11-22T08:13:22.181Z",
+    "to": "2026-11-22T08:13:52.181Z",
+    "requests": 601,
+    "throughput": 20,
+    "accepted": 601,
+    "status": {
+     "202": 601,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 12.5,
+     "p50": 5.9,
+     "p90": 11.7,
+     "p95": 18.2,
+     "p99": 213.7,
+     "max": 346.9
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 601,
+    "selfP50": 0.034,
+    "selfP95": 0.085,
+    "totalP50": 0.034,
+    "totalP95": 0.085
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 601,
+    "selfP50": 1.04608203125,
+    "selfP95": 2.0190410156249996,
+    "totalP50": 4.092,
+    "totalP95": 11.892
+   },
+   "typical": {
+    "traceId": "d292bfe02f0c9414bfcfec84f83372d1",
+    "ms": 4.092
+   },
+   "slowest": {
+    "traceId": "26db5cf846924f8ad98aad73e1d67efd",
+    "ms": 295.537
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "none",
+   "step": {
+    "step": "rate30",
+    "targetRate": 30,
+    "duration": "30s",
+    "from": "2026-11-22T08:13:52.181Z",
+    "to": "2026-11-22T08:14:22.181Z",
+    "requests": 901,
+    "throughput": 30,
+    "accepted": 901,
+    "status": {
+     "202": 901,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 7.8,
+     "p50": 4.6,
+     "p90": 9.6,
+     "p95": 15.1,
+     "p99": 90.2,
+     "max": 180.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 901,
+    "selfP50": 0.028,
+    "selfP95": 0.072,
+    "totalP50": 0.028,
+    "totalP95": 0.072
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 901,
+    "selfP50": 0.981841796875,
+    "selfP95": 1.5449843750000003,
+    "totalP50": 3.117,
+    "totalP95": 8.915
+   },
+   "typical": {
+    "traceId": "2b7b225f09778856d3d4b7e316993598",
+    "ms": 3.117
+   },
+   "slowest": {
+    "traceId": "9ef5c22ef9450a30a3450b8968436064",
+    "ms": 119.767
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "none",
+   "step": {
+    "step": "rate40",
+    "targetRate": 40,
+    "duration": "30s",
+    "from": "2026-11-22T08:14:22.181Z",
+    "to": "2026-11-22T08:14:52.181Z",
+    "requests": 1201,
+    "throughput": 40,
+    "accepted": 1196,
+    "status": {
+     "202": 1196,
+     "429": 0,
+     "502": 0,
+     "503": 5,
+     "504": 0
+    },
+    "errorRate": 0.4,
+    "latencyMs": {
+     "avg": 13.4,
+     "p50": 4.1,
+     "p90": 8.5,
+     "p95": 14.8,
+     "p99": 377.8,
+     "max": 621.6
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 1196,
+    "selfP50": 0.025,
+    "selfP95": 0.06,
+    "totalP50": 0.025,
+    "totalP95": 0.061
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 1196,
+    "selfP50": 0.9741347656250001,
+    "selfP95": 1.385990234375,
+    "totalP50": 2.811,
+    "totalP95": 9.013
+   },
+   "typical": {
+    "traceId": "359212bb263c34625625808b53143246",
+    "ms": 2.811
+   },
+   "slowest": {
+    "traceId": "34452274c52e84f731727580b9c2169b",
+    "ms": 518.203
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "none",
+   "step": {
+    "step": "rate50",
+    "targetRate": 50,
+    "duration": "30s",
+    "from": "2026-11-22T08:14:52.181Z",
+    "to": "2026-11-22T08:15:22.181Z",
+    "requests": 1500,
+    "throughput": 50,
+    "accepted": 1500,
+    "status": {
+     "202": 1500,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 10.7,
+     "p50": 4,
+     "p90": 9.2,
+     "p95": 36.7,
+     "p99": 186.4,
+     "max": 343.7
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 1501,
+    "selfP50": 0.022,
+    "selfP95": 0.099,
+    "totalP50": 0.022,
+    "totalP95": 0.099
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 1501,
+    "selfP50": 0.9300332031250003,
+    "selfP95": 1.4051679687499998,
+    "totalP50": 2.676,
+    "totalP95": 11.593
+   },
+   "typical": {
+    "traceId": "103e33ee21e4f643bc2cf31b78260dcb",
+    "ms": 2.676
+   },
+   "slowest": {
+    "traceId": "a3a14c1a544e4a9bfe482013940d787c",
+    "ms": 209.289
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate10",
+    "targetRate": 10,
+    "duration": "30s",
+    "from": "2026-11-22T08:15:58.651Z",
+    "to": "2026-11-22T08:16:28.651Z",
+    "requests": 301,
+    "throughput": 10,
+    "accepted": 301,
+    "status": {
+     "202": 301,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 317.4,
+     "p50": 310.6,
+     "p90": 317.7,
+     "p95": 341.5,
+     "p99": 471.9,
+     "max": 599.9
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 301,
+    "selfP50": 0.041,
+    "selfP95": 0.117,
+    "totalP50": 0.041,
+    "totalP95": 0.117
+   },
+   "culprit": {
+    "service": "order-api-node",
+    "span": "pg.query:INSERT lab",
+    "async": false,
+    "traces": 301,
+    "selfP50": 302.636,
+    "selfP95": 307.815,
+    "totalP50": 302.636,
+    "totalP95": 307.815
+   },
+   "typical": {
+    "traceId": "5ee5b277ec650c6060f063a482eac61c",
+    "ms": 307.807
+   },
+   "slowest": {
+    "traceId": "15af6c0117e744da8d357d1ed9d3ecc1",
+    "ms": 574.75
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate20",
+    "targetRate": 20,
+    "duration": "30s",
+    "from": "2026-11-22T08:16:28.651Z",
+    "to": "2026-11-22T08:16:58.651Z",
+    "requests": 600,
+    "throughput": 20,
+    "accepted": 600,
+    "status": {
+     "202": 600,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 310,
+     "p50": 307.7,
+     "p90": 312.8,
+     "p95": 318.4,
+     "p99": 384.6,
+     "max": 403.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 601,
+    "selfP50": 0.03,
+    "selfP95": 0.074,
+    "totalP50": 0.03,
+    "totalP95": 0.074
+   },
+   "culprit": {
+    "service": "order-api-node",
+    "span": "pg.query:INSERT lab",
+    "async": false,
+    "traces": 601,
+    "selfP50": 302.054,
+    "selfP95": 305.896,
+    "totalP50": 302.054,
+    "totalP95": 305.896
+   },
+   "typical": {
+    "traceId": "6e78cff4630a6b14f770e9f407724b26",
+    "ms": 305.57
+   },
+   "slowest": {
+    "traceId": "32dde529094917b4980d8147e49bf2eb",
+    "ms": 395.044
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate30",
+    "targetRate": 30,
+    "duration": "30s",
+    "from": "2026-11-22T08:16:58.651Z",
+    "to": "2026-11-22T08:17:28.651Z",
+    "requests": 901,
+    "throughput": 30,
+    "accepted": 901,
+    "status": {
+     "202": 901,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 320.6,
+     "p50": 306,
+     "p90": 360.1,
+     "p95": 410,
+     "p99": 527,
+     "max": 594
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 900,
+    "selfP50": 0.029,
+    "selfP95": 55.078,
+    "totalP50": 0.029,
+    "totalP95": 55.078
+   },
+   "culprit": {
+    "service": "order-api-node",
+    "span": "pg.query:INSERT lab",
+    "async": false,
+    "traces": 900,
+    "selfP50": 301.61,
+    "selfP95": 304.42,
+    "totalP50": 301.61,
+    "totalP95": 304.42
+   },
+   "typical": {
+    "traceId": "9ecd8ebd4201e4d2e004e479f4db78ad",
+    "ms": 304.284
+   },
+   "slowest": {
+    "traceId": "74319a1fc5092828ca8f6ef723aa9e58",
+    "ms": 579.578
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate40",
+    "targetRate": 40,
+    "duration": "30s",
+    "from": "2026-11-22T08:17:28.651Z",
+    "to": "2026-11-22T08:17:58.651Z",
+    "requests": 1201,
+    "throughput": 40,
+    "accepted": 998,
+    "status": {
+     "202": 998,
+     "429": 0,
+     "502": 0,
+     "503": 203,
+     "504": 0
+    },
+    "errorRate": 16.9,
+    "latencyMs": {
+     "avg": 454.5,
+     "p50": 544.3,
+     "p90": 591.1,
+     "p95": 603.8,
+     "p99": 653,
+     "max": 815.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 998,
+    "selfP50": 242.691,
+    "selfP95": 294.168,
+    "totalP50": 242.691,
+    "totalP95": 294.168
+   },
+   "culprit": {
+    "service": "order-api-node",
+    "span": "pg.query:INSERT lab",
+    "async": false,
+    "traces": 998,
+    "selfP50": 302.023,
+    "selfP95": 305.477,
+    "totalP50": 302.023,
+    "totalP95": 305.477
+   },
+   "typical": {
+    "traceId": "9a82106b7e9c293270992329b543d376",
+    "ms": 550.886
+   },
+   "slowest": {
+    "traceId": "11d6a7c459d439d028e186c110811ac3",
+    "ms": 814.479
+   }
+  },
+  {
+   "impl": "node",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate50",
+    "targetRate": 50,
+    "duration": "30s",
+    "from": "2026-11-22T08:17:58.651Z",
+    "to": "2026-11-22T08:18:28.651Z",
+    "requests": 1500,
+    "throughput": 50,
+    "accepted": 990,
+    "status": {
+     "202": 990,
+     "429": 0,
+     "502": 0,
+     "503": 510,
+     "504": 0
+    },
+    "errorRate": 34,
+    "latencyMs": {
+     "avg": 365.1,
+     "p50": 522.2,
+     "p90": 591,
+     "p95": 601.1,
+     "p99": 615.4,
+     "max": 690.7
+    }
+   },
+   "poolWait": {
+    "service": "order-api-node",
+    "span": "pg-pool.connect",
+    "async": false,
+    "traces": 991,
+    "selfP50": 244.923,
+    "selfP95": 292.031,
+    "totalP50": 244.923,
+    "totalP95": 292.031
+   },
+   "culprit": {
+    "service": "order-api-node",
+    "span": "pg.query:INSERT lab",
+    "async": false,
+    "traces": 991,
+    "selfP50": 302.218,
+    "selfP95": 306.875,
+    "totalP50": 302.218,
+    "totalP95": 306.875
+   },
+   "typical": {
+    "traceId": "725614e4ae4c57db34301bd0699ff5e7",
+    "ms": 552.839
+   },
+   "slowest": {
+    "traceId": "1798b8a7995eb2fd2f3f6543d91a14de",
+    "ms": 687.898
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "step": {
+    "step": "rate10",
+    "targetRate": 10,
+    "duration": "30s",
+    "from": "2026-11-22T08:19:05.999Z",
+    "to": "2026-11-22T08:19:35.999Z",
+    "requests": 301,
+    "throughput": 10,
+    "accepted": 301,
+    "status": {
+     "202": 301,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 11.9,
+     "p50": 7.4,
+     "p90": 15.3,
+     "p95": 41.1,
+     "p99": 96.4,
+     "max": 190.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 300,
+    "selfP50": 0.005,
+    "selfP95": 0.018,
+    "totalP50": 0.005,
+    "totalP95": 0.018
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 300,
+    "selfP50": 1.398119140625,
+    "selfP95": 2.6600937499999997,
+    "totalP50": 4.6,
+    "totalP95": 12.743
+   },
+   "typical": {
+    "traceId": "177013ac8910ff64af112062a6f88101",
+    "ms": 4.6
+   },
+   "slowest": {
+    "traceId": "5bb62581645933ac874483719e45e0fa",
+    "ms": 164.419
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "step": {
+    "step": "rate20",
+    "targetRate": 20,
+    "duration": "30s",
+    "from": "2026-11-22T08:19:35.999Z",
+    "to": "2026-11-22T08:20:05.999Z",
+    "requests": 601,
+    "throughput": 20,
+    "accepted": 601,
+    "status": {
+     "202": 601,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 6.5,
+     "p50": 5.1,
+     "p90": 8.7,
+     "p95": 10.7,
+     "p99": 32.8,
+     "max": 143.7
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 601,
+    "selfP50": 0.004,
+    "selfP95": 0.013,
+    "totalP50": 0.004,
+    "totalP95": 0.013
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 601,
+    "selfP50": 0.9999726562500002,
+    "selfP95": 1.869890625,
+    "totalP50": 3.226,
+    "totalP95": 6.526
+   },
+   "typical": {
+    "traceId": "b974e7a3c008f9947e1e600ee3e040bb",
+    "ms": 3.226
+   },
+   "slowest": {
+    "traceId": "6a6f8026946837591aad17c9c7557a93",
+    "ms": 100.757
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "step": {
+    "step": "rate30",
+    "targetRate": 30,
+    "duration": "30s",
+    "from": "2026-11-22T08:20:05.999Z",
+    "to": "2026-11-22T08:20:35.999Z",
+    "requests": 901,
+    "throughput": 30,
+    "accepted": 901,
+    "status": {
+     "202": 901,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 9.4,
+     "p50": 3.9,
+     "p90": 7.2,
+     "p95": 10.7,
+     "p99": 218,
+     "max": 471.5
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 901,
+    "selfP50": 0.003,
+    "selfP95": 0.013,
+    "totalP50": 0.003,
+    "totalP95": 0.013
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 901,
+    "selfP50": 0.9810781249999998,
+    "selfP95": 1.424013671875,
+    "totalP50": 2.507,
+    "totalP95": 7.345
+   },
+   "typical": {
+    "traceId": "f4d0e0e166ff41399680580918e61dd1",
+    "ms": 2.507
+   },
+   "slowest": {
+    "traceId": "4cafcfddf398c6458476b2765fa04050",
+    "ms": 416.702
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "step": {
+    "step": "rate40",
+    "targetRate": 40,
+    "duration": "30s",
+    "from": "2026-11-22T08:20:35.999Z",
+    "to": "2026-11-22T08:21:05.999Z",
+    "requests": 1200,
+    "throughput": 40,
+    "accepted": 1200,
+    "status": {
+     "202": 1200,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 8.6,
+     "p50": 3.4,
+     "p90": 6.8,
+     "p95": 10.6,
+     "p99": 180.3,
+     "max": 417.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 1201,
+    "selfP50": 0.003,
+    "selfP95": 0.009,
+    "totalP50": 0.003,
+    "totalP95": 0.009
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST /api/:impl/orders",
+    "async": false,
+    "traces": 1201,
+    "selfP50": 0.85501953125,
+    "selfP95": 1.26209375,
+    "totalP50": 2.109,
+    "totalP95": 5.713
+   },
+   "typical": {
+    "traceId": "48b4f69de0caf80f30d69b31c4585828",
+    "ms": 2.109
+   },
+   "slowest": {
+    "traceId": "7b347569904a4bbd5a58436218a08da5",
+    "ms": 391.026
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "none",
+   "step": {
+    "step": "rate50",
+    "targetRate": 50,
+    "duration": "30s",
+    "from": "2026-11-22T08:21:05.999Z",
+    "to": "2026-11-22T08:21:35.999Z",
+    "requests": 1501,
+    "throughput": 50,
+    "accepted": 1501,
+    "status": {
+     "202": 1501,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 6.5,
+     "p50": 3.1,
+     "p90": 6.2,
+     "p95": 9.8,
+     "p99": 106.9,
+     "max": 189.3
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 1500,
+    "selfP50": 0.003,
+    "selfP95": 0.009,
+    "totalP50": 0.003,
+    "totalP95": 0.009
+   },
+   "culprit": {
+    "service": "gateway",
+    "span": "POST",
+    "async": false,
+    "traces": 1500,
+    "selfP50": 0.750919921875,
+    "selfP95": 1.4180332031249998,
+    "totalP50": 1.315,
+    "totalP95": 3.952
+   },
+   "typical": {
+    "traceId": "99b81a4e2d270f41fa5aba9db38278c9",
+    "ms": 1.932
+   },
+   "slowest": {
+    "traceId": "2eb2c3b76ed2fd1e88359b9069632b1f",
+    "ms": 111.619
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate10",
+    "targetRate": 10,
+    "duration": "30s",
+    "from": "2026-11-22T08:22:15.119Z",
+    "to": "2026-11-22T08:22:45.119Z",
+    "requests": 301,
+    "throughput": 10,
+    "accepted": 301,
+    "status": {
+     "202": 301,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 310.2,
+     "p50": 309.5,
+     "p90": 314.9,
+     "p95": 316.9,
+     "p99": 322.4,
+     "max": 328.4
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 300,
+    "selfP50": 0.005,
+    "selfP95": 0.018,
+    "totalP50": 0.005,
+    "totalP95": 0.018
+   },
+   "culprit": {
+    "service": "order-api-go",
+    "span": "INSERT",
+    "async": false,
+    "traces": 300,
+    "selfP50": 302.546,
+    "selfP95": 307.793,
+    "totalP50": 302.546,
+    "totalP95": 307.793
+   },
+   "typical": {
+    "traceId": "e8a7a3a797f9d33f13387ad85c8b89b0",
+    "ms": 306.299
+   },
+   "slowest": {
+    "traceId": "7190f18fc899796fb11d061074682e1b",
+    "ms": 325.339
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate20",
+    "targetRate": 20,
+    "duration": "30s",
+    "from": "2026-11-22T08:22:45.119Z",
+    "to": "2026-11-22T08:23:15.119Z",
+    "requests": 600,
+    "throughput": 20,
+    "accepted": 600,
+    "status": {
+     "202": 600,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 309.9,
+     "p50": 307,
+     "p90": 312.5,
+     "p95": 318.2,
+     "p99": 384,
+     "max": 483.8
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 601,
+    "selfP50": 0.004,
+    "selfP95": 0.017,
+    "totalP50": 0.004,
+    "totalP95": 0.017
+   },
+   "culprit": {
+    "service": "order-api-go",
+    "span": "INSERT",
+    "async": false,
+    "traces": 601,
+    "selfP50": 301.959,
+    "selfP95": 305.846,
+    "totalP50": 301.959,
+    "totalP95": 305.846
+   },
+   "typical": {
+    "traceId": "9b9149c7e7bc9130d68f215534a08e0b",
+    "ms": 304.808
+   },
+   "slowest": {
+    "traceId": "d48890d4ba951c17520d5c783c2edfa9",
+    "ms": 412.667
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate30",
+    "targetRate": 30,
+    "duration": "30s",
+    "from": "2026-11-22T08:23:15.119Z",
+    "to": "2026-11-22T08:23:45.119Z",
+    "requests": 901,
+    "throughput": 30,
+    "accepted": 901,
+    "status": {
+     "202": 901,
+     "429": 0,
+     "502": 0,
+     "503": 0,
+     "504": 0
+    },
+    "errorRate": 0,
+    "latencyMs": {
+     "avg": 311,
+     "p50": 305,
+     "p90": 326.4,
+     "p95": 361,
+     "p99": 399.1,
+     "max": 433.2
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 900,
+    "selfP50": 0.003,
+    "selfP95": 0.468,
+    "totalP50": 0.003,
+    "totalP95": 0.468
+   },
+   "culprit": {
+    "service": "order-api-go",
+    "span": "INSERT",
+    "async": false,
+    "traces": 900,
+    "selfP50": 301.38,
+    "selfP95": 303.901,
+    "totalP50": 301.38,
+    "totalP95": 303.901
+   },
+   "typical": {
+    "traceId": "767347ec637ba880cef0ffb7c83a86cb",
+    "ms": 303.395
+   },
+   "slowest": {
+    "traceId": "84c4d2286cf1c3c1353e39ba75b9a658",
+    "ms": 405.81
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate40",
+    "targetRate": 40,
+    "duration": "30s",
+    "from": "2026-11-22T08:23:45.119Z",
+    "to": "2026-11-22T08:24:15.119Z",
+    "requests": 1201,
+    "throughput": 40,
+    "accepted": 1000,
+    "status": {
+     "202": 1000,
+     "429": 0,
+     "502": 0,
+     "503": 201,
+     "504": 0
+    },
+    "errorRate": 16.7,
+    "latencyMs": {
+     "avg": 477.2,
+     "p50": 573.9,
+     "p90": 600.5,
+     "p95": 606,
+     "p99": 703.9,
+     "max": 807.9
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 1000,
+    "selfP50": 272.881,
+    "selfP95": 298.346,
+    "totalP50": 272.881,
+    "totalP95": 298.346
+   },
+   "culprit": {
+    "service": "order-api-go",
+    "span": "INSERT",
+    "async": false,
+    "traces": 1000,
+    "selfP50": 301.973,
+    "selfP95": 305.923,
+    "totalP50": 301.973,
+    "totalP95": 305.923
+   },
+   "typical": {
+    "traceId": "66b8c4b3afc6678016e7a5bf33b94f15",
+    "ms": 577.52
+   },
+   "slowest": {
+    "traceId": "913e62968e9a71480b2c7429b46a4263",
+    "ms": 806.415
+   }
+  },
+  {
+   "impl": "go",
+   "scenario": "slow-db",
+   "step": {
+    "step": "rate50",
+    "targetRate": 50,
+    "duration": "30s",
+    "from": "2026-11-22T08:24:15.119Z",
+    "to": "2026-11-22T08:24:45.119Z",
+    "requests": 1500,
+    "throughput": 50,
+    "accepted": 992,
+    "status": {
+     "202": 992,
+     "429": 0,
+     "502": 0,
+     "503": 508,
+     "504": 0
+    },
+    "errorRate": 33.9,
+    "latencyMs": {
+     "avg": 381.3,
+     "p50": 557.9,
+     "p90": 597.8,
+     "p95": 604,
+     "p99": 630,
+     "max": 731.6
+    }
+   },
+   "poolWait": {
+    "service": "order-api-go",
+    "span": "pool.acquire",
+    "async": false,
+    "traces": 993,
+    "selfP50": 266.514,
+    "selfP95": 297.454,
+    "totalP50": 266.514,
+    "totalP95": 297.454
+   },
+   "culprit": {
+    "service": "order-api-go",
+    "span": "INSERT",
+    "async": false,
+    "traces": 993,
+    "selfP50": 301.94,
+    "selfP95": 304.932,
+    "totalP50": 301.94,
+    "totalP95": 304.932
+   },
+   "typical": {
+    "traceId": "aed8a788badbe21e06d108250add096d",
+    "ms": 571.944
+   },
+   "slowest": {
+    "traceId": "fb63535ce8956af529dad0748409d88a",
+    "ms": 674.683
+   }
+  }
+ ]
+}

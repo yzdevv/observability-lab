@@ -1,0 +1,33 @@
+{
+  "impl": "go",
+  "scenario": "slow-db",
+  "startedAt": "2026-11-22T08:10:53.819Z",
+  "steps": [
+    {
+      "step": "rate4",
+      "targetRate": 4,
+      "duration": "60s",
+      "from": "2026-11-22T08:11:23.819Z",
+      "to": "2026-11-22T08:12:23.819Z",
+      "requests": 241,
+      "throughput": 4,
+      "accepted": 241,
+      "status": {
+        "202": 241,
+        "429": 0,
+        "502": 0,
+        "503": 0,
+        "504": 0
+      },
+      "errorRate": 0,
+      "latencyMs": {
+        "avg": 315.5,
+        "p50": 314.3,
+        "p90": 321.7,
+        "p95": 324.2,
+        "p99": 330,
+        "max": 431.6
+      }
+    }
+  ]
+}

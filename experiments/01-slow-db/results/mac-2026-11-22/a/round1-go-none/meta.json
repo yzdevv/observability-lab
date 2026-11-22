@@ -1,0 +1,11 @@
+{
+  "impl": "go",
+  "scenario": "none",
+  "k6Env": "RATE=4 WARMUP=30s DURATION=60s",
+  "k6Image": "grafana/k6:2.3.0",
+  "commit": "b888911",
+  "started": "2026-11-22T07:57:11Z",
+  "ended": "2026-11-22T07:58:42Z",
+  "labStatusBefore": {"load1":0.45,"inflight":0,"backlog":{"node":0,"go":0},"limits":{"maxLoad1":16,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":300}},
+  "labStatusAfter": {"load1":0.54,"inflight":0,"backlog":{"node":0,"go":0},"limits":{"maxLoad1":16,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":300}}
+}

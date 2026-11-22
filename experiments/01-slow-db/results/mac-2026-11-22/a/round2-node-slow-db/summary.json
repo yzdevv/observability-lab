@@ -1,0 +1,33 @@
+{
+  "impl": "node",
+  "scenario": "slow-db",
+  "startedAt": "2026-11-22T08:01:45.500Z",
+  "steps": [
+    {
+      "step": "rate4",
+      "targetRate": 4,
+      "duration": "60s",
+      "from": "2026-11-22T08:02:15.500Z",
+      "to": "2026-11-22T08:03:15.500Z",
+      "requests": 241,
+      "throughput": 4,
+      "accepted": 241,
+      "status": {
+        "202": 241,
+        "429": 0,
+        "502": 0,
+        "503": 0,
+        "504": 0
+      },
+      "errorRate": 0,
+      "latencyMs": {
+        "avg": 318,
+        "p50": 316.1,
+        "p90": 325.5,
+        "p95": 330.2,
+        "p99": 354.9,
+        "max": 378.4
+      }
+    }
+  ]
+}

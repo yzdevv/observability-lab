@@ -1,0 +1,305 @@
+{
+ "traceId": "fb63535ce8956af529dad0748409d88a",
+ "spans": [
+  {
+   "service": "order-api-go",
+   "name": "order.validate",
+   "spanId": "6f94e95e11f1a87a",
+   "parentSpanId": "9a013e343dbea618",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795335863461.909,
+   "endMs": 1795335863461.911,
+   "durationMs": 0.001953125,
+   "attributes": {}
+  },
+  {
+   "service": "order-api-go",
+   "name": "get",
+   "spanId": "3c3702b15835e26b",
+   "parentSpanId": "d5a22870df02dfcc",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335863461.93,
+   "endMs": 1795335863462.116,
+   "durationMs": 0.18603515625,
+   "attributes": {
+    "db.system.name": "redis",
+    "db.operation.name": "get",
+    "server.address": "redis:6379"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "product.lookup",
+   "spanId": "d5a22870df02dfcc",
+   "parentSpanId": "9a013e343dbea618",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795335863461.927,
+   "endMs": 1795335863462.12,
+   "durationMs": 0.193115234375,
+   "attributes": {
+    "product.id": "demo-004",
+    "cache.hit": true
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "order.persist",
+   "spanId": "75cd4e6e550d1a85",
+   "parentSpanId": "9a013e343dbea618",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795335863462.124,
+   "endMs": 1795335864034.019,
+   "durationMs": 571.89501953125,
+   "attributes": {
+    "order.id": "40a9105f-9b28-4c38-b023-389b20c962e0"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "xadd",
+   "spanId": "2b2416df32d69491",
+   "parentSpanId": "f4a797c053f87c39",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335864034.046,
+   "endMs": 1795335864034.356,
+   "durationMs": 0.31005859375,
+   "attributes": {
+    "db.system.name": "redis",
+    "db.operation.name": "xadd",
+    "server.address": "redis:6379"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "order.enqueue",
+   "spanId": "f4a797c053f87c39",
+   "parentSpanId": "9a013e343dbea618",
+   "kind": "SPAN_KIND_PRODUCER",
+   "startMs": 1795335864034.03,
+   "endMs": 1795335864034.361,
+   "durationMs": 0.3310546875,
+   "attributes": {
+    "order.id": "40a9105f-9b28-4c38-b023-389b20c962e0",
+    "messaging.system": "redis",
+    "messaging.operation.type": "send",
+    "messaging.destination.name": "lab:go:orders",
+    "messaging.message.id": "1795335864034-0"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "pool.acquire",
+   "spanId": "de1c98329c70152d",
+   "parentSpanId": "75cd4e6e550d1a85",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335863462.129,
+   "endMs": 1795335863732.539,
+   "durationMs": 270.41015625,
+   "attributes": {
+    "db.system.name": "postgresql",
+    "server.port": 5432,
+    "user.name": "lab",
+    "db.namespace": "lab",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "INSERT",
+   "spanId": "cc1af13adde8abab",
+   "parentSpanId": "75cd4e6e550d1a85",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335863732.548,
+   "endMs": 1795335864033.994,
+   "durationMs": 301.44580078125,
+   "attributes": {
+    "db.system.name": "postgresql",
+    "server.port": 5432,
+    "user.name": "lab",
+    "db.namespace": "lab",
+    "db.query.text": "\nINSERT INTO orders (id, product_id, quantity, unit_price_cents, impl, scenario, status)\nSELECT $1::uuid, $2::text, $3::int, $4::int, $5::text, $6::text, 'queued'\nFROM pg_sleep($7::float8)",
+    "db.operation.name": "INSERT",
+    "pgx.rows_affected": 1,
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "POST /orders",
+   "spanId": "9a013e343dbea618",
+   "parentSpanId": "010cfbb3b495b982",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795335863461.895,
+   "endMs": 1795335864034.433,
+   "durationMs": 572.5380859375,
+   "attributes": {
+    "url.scheme": "http",
+    "server.port": 8082,
+    "network.peer.address": "172.18.0.5",
+    "network.peer.port": 41208,
+    "user_agent.original": "node",
+    "client.address": "172.18.0.5",
+    "network.protocol.version": "1.1",
+    "lab.impl": "go",
+    "lab.scenario": "slow-db",
+    "order.id": "40a9105f-9b28-4c38-b023-389b20c962e0",
+    "http.request.body.size": 58,
+    "http.response.body.size": 81,
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go",
+    "http.route": "/orders"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "gateway.guards",
+   "spanId": "ac63ca03749bccb9",
+   "parentSpanId": "3c749e2769338319",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795335863360,
+   "endMs": 1795335863360.024,
+   "durationMs": 0.02392578125,
+   "attributes": {
+    "lab.guard.passed": true
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST",
+   "spanId": "010cfbb3b495b982",
+   "parentSpanId": "3c749e2769338319",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335863360,
+   "endMs": 1795335864033.928,
+   "durationMs": 673.927978515625,
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://order-api-go:8082/orders",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8082,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.6",
+    "network.peer.port": 8082,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST /api/:impl/orders",
+   "spanId": "3c749e2769338319",
+   "parentSpanId": "",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795335863360,
+   "endMs": 1795335864034.683,
+   "durationMs": 674.68310546875,
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.1",
+    "network.peer.port": 57282,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "Grafana k6/2.3.0",
+    "client.address": "172.18.0.1",
+    "server.port": 8088,
+    "lab.impl": "go",
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/api/go/orders",
+    "server.address": "host.docker.internal",
+    "http.route": "/api/:impl/orders"
+   }
+  },
+  {
+   "service": "worker-go",
+   "name": "order.fulfil",
+   "spanId": "ebc3140077eca960",
+   "parentSpanId": "5acd7195a281f596",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795335864034.402,
+   "endMs": 1795335864054.993,
+   "durationMs": 20.5908203125,
+   "attributes": {
+    "lab.simulated": true
+   }
+  },
+  {
+   "service": "worker-go",
+   "name": "xack",
+   "spanId": "40456b4a4808ee8c",
+   "parentSpanId": "5acd7195a281f596",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335864055.892,
+   "endMs": 1795335864056.075,
+   "durationMs": 0.182861328125,
+   "attributes": {
+    "db.system.name": "redis",
+    "db.operation.name": "xack",
+    "server.address": "redis:6379"
+   }
+  },
+  {
+   "service": "worker-go",
+   "name": "order.process",
+   "spanId": "5acd7195a281f596",
+   "parentSpanId": "f4a797c053f87c39",
+   "kind": "SPAN_KIND_CONSUMER",
+   "startMs": 1795335864034.397,
+   "endMs": 1795335864056.116,
+   "durationMs": 21.718994140625,
+   "attributes": {
+    "order.id": "40a9105f-9b28-4c38-b023-389b20c962e0",
+    "lab.impl": "go",
+    "lab.scenario": "slow-db",
+    "lab.attempt": 1,
+    "messaging.system": "redis",
+    "messaging.operation.type": "process",
+    "messaging.destination.name": "lab:go:orders",
+    "messaging.message.id": "1795335864034-0",
+    "order.updated": true
+   }
+  },
+  {
+   "service": "worker-go",
+   "name": "pool.acquire",
+   "spanId": "e805b6cc948aa49a",
+   "parentSpanId": "5acd7195a281f596",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335864055.012,
+   "endMs": 1795335864055.017,
+   "durationMs": 0.005126953125,
+   "attributes": {
+    "db.system.name": "postgresql",
+    "server.port": 5432,
+    "user.name": "lab",
+    "db.namespace": "lab",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-go",
+   "name": "UPDATE",
+   "spanId": "8ca756f15931b6b2",
+   "parentSpanId": "5acd7195a281f596",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795335864055.038,
+   "endMs": 1795335864055.873,
+   "durationMs": 0.8349609375,
+   "attributes": {
+    "db.system.name": "postgresql",
+    "server.port": 5432,
+    "user.name": "lab",
+    "db.namespace": "lab",
+    "db.query.text": "\nUPDATE orders\nSET status = 'completed', total_cents = quantity * unit_price_cents,\n    attempts = attempts + 1, processed_at = now()\nWHERE id = $1 AND status = 'queued'",
+    "db.operation.name": "UPDATE",
+    "pgx.rows_affected": 1,
+    "server.address": "postgres"
+   }
+  }
+ ]
+}
