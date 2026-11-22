@@ -1,0 +1,524 @@
+[
+ {
+  "impl": "node",
+  "scenario": "none",
+  "step": {
+   "step": "rate10",
+   "scenario": "none",
+   "targetRate": 10,
+   "duration": "30s",
+   "from": "2026-11-22T10:35:16.840Z",
+   "to": "2026-11-22T10:35:46.840Z",
+   "requests": 301,
+   "throughput": 10,
+   "accepted": 301,
+   "status": {
+    "202": 301
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 17.6,
+    "p50": 14.4,
+    "p90": 22.3,
+    "p95": 30.5,
+    "p99": 115.6,
+    "max": 227.5
+   }
+  },
+  "dbOpsPerS": 9.99950002499875,
+  "selectShare": 0,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.08992578125,
+   "selfP95": 0.549,
+   "totalP50": 0.44,
+   "totalP95": 1.786
+  },
+  "typical": {
+   "traceId": "a2326dae195af1960505477c6a1b54ec",
+   "ms": 11.556
+  }
+ },
+ {
+  "impl": "node",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate10",
+   "scenario": "cache-miss",
+   "targetRate": 10,
+   "duration": "30s",
+   "from": "2026-11-22T10:37:04.819Z",
+   "to": "2026-11-22T10:37:34.819Z",
+   "requests": 301,
+   "throughput": 10,
+   "accepted": 301,
+   "status": {
+    "202": 301
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 24.1,
+    "p50": 16.2,
+    "p90": 37.9,
+    "p95": 56.5,
+    "p99": 158.6,
+    "max": 295.6
+   }
+  },
+  "dbOpsPerS": 20.045990801839633,
+  "selectShare": 1,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.4479648437499999,
+   "selfP95": 1.09204296875,
+   "totalP50": 1.505,
+   "totalP95": 7.062
+  },
+  "typical": {
+   "traceId": "7e5e396557681198f035fbb6a446d60",
+   "ms": 12.986
+  }
+ },
+ {
+  "impl": "node",
+  "scenario": "none",
+  "step": {
+   "step": "rate25",
+   "scenario": "none",
+   "targetRate": 25,
+   "duration": "30s",
+   "from": "2026-11-22T10:35:46.840Z",
+   "to": "2026-11-22T10:36:16.840Z",
+   "requests": 751,
+   "throughput": 25,
+   "accepted": 751,
+   "status": {
+    "202": 751
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 18.1,
+    "p50": 12.1,
+    "p90": 25.4,
+    "p95": 41.9,
+    "p99": 139.7,
+    "max": 272.3
+   }
+  },
+  "dbOpsPerS": 25.498725063746807,
+  "selectShare": 0.023333333333333334,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.06697851562500001,
+   "selfP95": 0.507080078125,
+   "totalP50": 0.324,
+   "totalP95": 1.655
+  },
+  "typical": {
+   "traceId": "c790059651f5f18bd7bca283ff41bcf2",
+   "ms": 9.83
+  }
+ },
+ {
+  "impl": "node",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate25",
+   "scenario": "cache-miss",
+   "targetRate": 25,
+   "duration": "30s",
+   "from": "2026-11-22T10:37:34.819Z",
+   "to": "2026-11-22T10:38:04.819Z",
+   "requests": 751,
+   "throughput": 25,
+   "accepted": 751,
+   "status": {
+    "202": 751
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 19.2,
+    "p50": 11.1,
+    "p90": 21.9,
+    "p95": 44.5,
+    "p99": 239.9,
+    "max": 338.3
+   }
+  },
+  "dbOpsPerS": 49.673983375640844,
+  "selectShare": 1,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.3609765625000003,
+   "selfP95": 0.9489414062499999,
+   "totalP50": 0.904,
+   "totalP95": 4.379
+  },
+  "typical": {
+   "traceId": "801275c115bfe70be94794f0b9e3f48",
+   "ms": 9.409
+  }
+ },
+ {
+  "impl": "node",
+  "scenario": "none",
+  "step": {
+   "step": "rate50",
+   "scenario": "none",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T10:36:16.840Z",
+   "to": "2026-11-22T10:36:46.840Z",
+   "requests": 1500,
+   "throughput": 50,
+   "accepted": 1466,
+   "status": {
+    "202": 1466,
+    "503": 34
+   },
+   "errorRate": 2.3,
+   "latencyMs": {
+    "avg": 55.6,
+    "p50": 16.6,
+    "p90": 138.1,
+    "p95": 257.6,
+    "p99": 643.8,
+    "max": 858
+   }
+  },
+  "dbOpsPerS": 48.445155484451554,
+  "selectShare": 0,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 294,
+   "selfP50": 0.08193554687499999,
+   "selfP95": 0.44200976562499994,
+   "totalP50": 0.505,
+   "totalP95": 6.787
+  },
+  "typical": {
+   "traceId": "da2de93dddad1e34d1431dad4f141a87",
+   "ms": 13.018
+  }
+ },
+ {
+  "impl": "node",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate50",
+   "scenario": "cache-miss",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T10:38:04.819Z",
+   "to": "2026-11-22T10:38:34.819Z",
+   "requests": 1500,
+   "throughput": 50,
+   "accepted": 1490,
+   "status": {
+    "202": 1490,
+    "503": 10
+   },
+   "errorRate": 0.7,
+   "latencyMs": {
+    "avg": 34.9,
+    "p50": 12.3,
+    "p90": 71,
+    "p95": 181.6,
+    "p99": 380.1,
+    "max": 511.3
+   }
+  },
+  "dbOpsPerS": 99.38012397520497,
+  "selectShare": 0.99,
+  "lookup": {
+   "service": "order-api-node",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 297,
+   "selfP50": 0.38497265625,
+   "selfP95": 0.9740527343749998,
+   "totalP50": 1.045,
+   "totalP95": 11.685
+  },
+  "typical": {
+   "traceId": "6f5d00437ca1b3d3b52ba54d9190f2b0",
+   "ms": 9.86
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "none",
+  "step": {
+   "step": "rate10",
+   "scenario": "none",
+   "targetRate": 10,
+   "duration": "30s",
+   "from": "2026-11-22T10:38:52.387Z",
+   "to": "2026-11-22T10:39:22.387Z",
+   "requests": 301,
+   "throughput": 10,
+   "accepted": 301,
+   "status": {
+    "202": 301
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 16.7,
+    "p50": 13,
+    "p90": 24.7,
+    "p95": 32.8,
+    "p99": 90.8,
+    "max": 101.3
+   }
+  },
+  "dbOpsPerS": 20.0979902009799,
+  "selectShare": 0,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.04092968749999998,
+   "selfP95": 0.14089453124999995,
+   "totalP50": 0.343,
+   "totalP95": 0.979
+  },
+  "typical": {
+   "traceId": "e08c66920faea37b916248fc64bd91f4",
+   "ms": 10.154
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate10",
+   "scenario": "cache-miss",
+   "targetRate": 10,
+   "duration": "30s",
+   "from": "2026-11-22T10:40:40.674Z",
+   "to": "2026-11-22T10:41:10.674Z",
+   "requests": 301,
+   "throughput": 10,
+   "accepted": 301,
+   "status": {
+    "202": 301
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 13.4,
+    "p50": 12.2,
+    "p90": 17,
+    "p95": 20.9,
+    "p99": 34.2,
+    "max": 92
+   }
+  },
+  "dbOpsPerS": 40.08596991053132,
+  "selectShare": 1,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.08100976562499995,
+   "selfP95": 0.1949785156249999,
+   "totalP50": 0.757,
+   "totalP95": 1.592
+  },
+  "typical": {
+   "traceId": "bff02d85f6d00a3e993353a029e1868c",
+   "ms": 9.521
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "none",
+  "step": {
+   "step": "rate25",
+   "scenario": "none",
+   "targetRate": 25,
+   "duration": "30s",
+   "from": "2026-11-22T10:39:22.387Z",
+   "to": "2026-11-22T10:39:52.387Z",
+   "requests": 736,
+   "throughput": 24.5,
+   "accepted": 463,
+   "status": {
+    "202": 463,
+    "503": 266,
+    "504": 7
+   },
+   "errorRate": 37.1,
+   "latencyMs": {
+    "avg": 181.7,
+    "p50": 9.5,
+    "p90": 131,
+    "p95": 1654.4,
+    "p99": 3343.2,
+    "max": 3795.9
+   }
+  },
+  "dbOpsPerS": 22.351117555877796,
+  "selectShare": 0.013333333333333334,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 282,
+   "selfP50": 0.029103515624999993,
+   "selfP95": 0.10911132812500002,
+   "totalP50": 0.217,
+   "totalP95": 1.636
+  },
+  "typical": {
+   "traceId": "fc9bf1d47d1f9d64162ae32f571cf468",
+   "ms": 7.291
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate25",
+   "scenario": "cache-miss",
+   "targetRate": 25,
+   "duration": "30s",
+   "from": "2026-11-22T10:41:10.674Z",
+   "to": "2026-11-22T10:41:40.674Z",
+   "requests": 751,
+   "throughput": 25,
+   "accepted": 751,
+   "status": {
+    "202": 751
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 13.3,
+    "p50": 10.6,
+    "p90": 18.8,
+    "p95": 26.6,
+    "p99": 59.6,
+    "max": 110.3
+   }
+  },
+  "dbOpsPerS": 99.91511459529634,
+  "selectShare": 1,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 300,
+   "selfP50": 0.06485742187499999,
+   "selfP95": 0.18391796875,
+   "totalP50": 0.539,
+   "totalP95": 1.832
+  },
+  "typical": {
+   "traceId": "b59b218121bfffec5d315f92cfa00766",
+   "ms": 8.454
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "none",
+  "step": {
+   "step": "rate50",
+   "scenario": "none",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T10:39:52.387Z",
+   "to": "2026-11-22T10:40:22.387Z",
+   "requests": 1501,
+   "throughput": 50,
+   "accepted": 1497,
+   "status": {
+    "202": 1497,
+    "503": 4
+   },
+   "errorRate": 0.3,
+   "latencyMs": {
+    "avg": 20.7,
+    "p50": 11.1,
+    "p90": 27.4,
+    "p95": 51.2,
+    "p99": 237.7,
+    "max": 492.4
+   }
+  },
+  "dbOpsPerS": 99.69501524923753,
+  "selectShare": 0,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 299,
+   "selfP50": 0.03096484375,
+   "selfP95": 0.07689843750000014,
+   "totalP50": 0.237,
+   "totalP95": 0.675
+  },
+  "typical": {
+   "traceId": "948732f588754c961ddb760254625b83",
+   "ms": 8.652
+  }
+ },
+ {
+  "impl": "go",
+  "scenario": "cache-miss",
+  "step": {
+   "step": "rate50",
+   "scenario": "cache-miss",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T10:41:40.674Z",
+   "to": "2026-11-22T10:42:10.674Z",
+   "requests": 1500,
+   "throughput": 50,
+   "accepted": 1458,
+   "status": {
+    "202": 1458,
+    "503": 42
+   },
+   "errorRate": 2.8,
+   "latencyMs": {
+    "avg": 45.4,
+    "p50": 13.8,
+    "p90": 64.7,
+    "p95": 222.3,
+    "p99": 653.7,
+    "max": 809.2
+   }
+  },
+  "dbOpsPerS": 194.7194719471947,
+  "selectShare": 0.97,
+  "lookup": {
+   "service": "order-api-go",
+   "span": "product.lookup",
+   "async": false,
+   "traces": 291,
+   "selfP50": 0.070185546875,
+   "selfP95": 0.2210546874999999,
+   "totalP50": 0.802,
+   "totalP95": 4.527
+  },
+  "typical": {
+   "traceId": "6f6f56ab4a574f78a00167059a78cce",
+   "ms": 10.232
+  }
+ }
+]

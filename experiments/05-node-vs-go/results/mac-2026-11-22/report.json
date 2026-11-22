@@ -1,0 +1,327 @@
+[
+ {
+  "impl": "node",
+  "step": {
+   "step": "rate50",
+   "scenario": "none",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T11:02:34.671Z",
+   "to": "2026-11-22T11:03:04.671Z",
+   "requests": 1501,
+   "throughput": 50,
+   "accepted": 1499,
+   "status": {
+    "202": 1499,
+    "504": 2
+   },
+   "errorRate": 0.1,
+   "latencyMs": {
+    "avg": 91.7,
+    "p50": 10.6,
+    "p90": 309.2,
+    "p95": 554.8,
+    "p99": 1100.4,
+    "max": 1807.3
+   }
+  },
+  "cpu": 0.30454691407422224,
+  "throttled": 24.000000000000004,
+  "mem": 76.95703125,
+  "runtime": 5104.467967,
+  "poolWait": 0
+ },
+ {
+  "impl": "node",
+  "step": {
+   "step": "rate100",
+   "scenario": "none",
+   "targetRate": 100,
+   "duration": "30s",
+   "from": "2026-11-22T11:03:04.671Z",
+   "to": "2026-11-22T11:03:34.671Z",
+   "requests": 3001,
+   "throughput": 100,
+   "accepted": 1804,
+   "status": {
+    "202": 1804,
+    "503": 1131,
+    "504": 66
+   },
+   "errorRate": 39.9,
+   "latencyMs": {
+    "avg": 459.3,
+    "p50": 264.1,
+    "p90": 1141.4,
+    "p95": 1524.6,
+    "p99": 2024.1,
+    "max": 4154.1
+   }
+  },
+  "cpu": 0.38260873897663294,
+  "throttled": 61.691542288557216,
+  "mem": 84.49609375,
+  "runtime": 5104.467967,
+  "poolWait": 0
+ },
+ {
+  "impl": "node",
+  "step": {
+   "step": "rate200",
+   "scenario": "none",
+   "targetRate": 200,
+   "duration": "30s",
+   "from": "2026-11-22T11:03:34.671Z",
+   "to": "2026-11-22T11:04:04.671Z",
+   "requests": 5698,
+   "throughput": 189.9,
+   "accepted": 547,
+   "status": {
+    "202": 547,
+    "503": 5065,
+    "504": 86
+   },
+   "errorRate": 90.4,
+   "latencyMs": {
+    "avg": 820,
+    "p50": 385.7,
+    "p90": 2473.8,
+    "p95": 3464.9,
+    "p99": 8368.5,
+    "max": 8484.4
+   }
+  },
+  "cpu": 0.41333690570697695,
+  "throttled": 66.07929515418502,
+  "mem": 95.62109375,
+  "runtime": 5066.719231,
+  "poolWait": 64
+ },
+ {
+  "impl": "node",
+  "step": {
+   "step": "rate300",
+   "scenario": "none",
+   "targetRate": 300,
+   "duration": "30s",
+   "from": "2026-11-22T11:04:04.671Z",
+   "to": "2026-11-22T11:04:34.671Z",
+   "requests": 8446,
+   "throughput": 281.5,
+   "accepted": 0,
+   "status": {
+    "202": 0,
+    "503": 8444,
+    "504": 2
+   },
+   "errorRate": 100,
+   "latencyMs": {
+    "avg": 1069.1,
+    "p50": 409,
+    "p90": 3665.7,
+    "p95": 5641.5,
+    "p99": 7599.8,
+    "max": 11796.6
+   }
+  },
+  "cpu": 0.47993425417099855,
+  "throttled": 89.0547263681592,
+  "mem": 111.2734375,
+  "runtime": 5913.968639,
+  "poolWait": 0
+ },
+ {
+  "impl": "node",
+  "step": {
+   "step": "rate400",
+   "scenario": "none",
+   "targetRate": 400,
+   "duration": "30s",
+   "from": "2026-11-22T11:04:34.671Z",
+   "to": "2026-11-22T11:05:04.671Z",
+   "requests": 10954,
+   "throughput": 365.1,
+   "accepted": 0,
+   "status": {
+    "202": 0,
+    "503": 10951,
+    "504": 3
+   },
+   "errorRate": 100,
+   "latencyMs": {
+    "avg": 1886,
+    "p50": 1211.6,
+    "p90": 3481.6,
+    "p95": 4261.1,
+    "p99": 18112.7,
+    "max": 21191.8
+   }
+  },
+  "cpu": 0.4986265735641232,
+  "throttled": 100,
+  "mem": 121.1484375,
+  "runtime": 5913.968639,
+  "poolWait": 0
+ },
+ {
+  "impl": "go",
+  "step": {
+   "step": "rate50",
+   "scenario": "none",
+   "targetRate": 50,
+   "duration": "30s",
+   "from": "2026-11-22T11:06:01.849Z",
+   "to": "2026-11-22T11:06:31.849Z",
+   "requests": 1501,
+   "throughput": 50,
+   "accepted": 1501,
+   "status": {
+    "202": 1501
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 19.5,
+    "p50": 8.6,
+    "p90": 27.6,
+    "p95": 63.1,
+    "p99": 281.9,
+    "max": 530.4
+   }
+  },
+  "cpu": 0.20595909682587366,
+  "throttled": 6.5,
+  "mem": 26.31640625,
+  "runtime": 224,
+  "poolWait": 0.9011715229798739
+ },
+ {
+  "impl": "go",
+  "step": {
+   "step": "rate100",
+   "scenario": "none",
+   "targetRate": 100,
+   "duration": "30s",
+   "from": "2026-11-22T11:06:31.849Z",
+   "to": "2026-11-22T11:07:01.849Z",
+   "requests": 3001,
+   "throughput": 100,
+   "accepted": 3001,
+   "status": {
+    "202": 3001
+   },
+   "errorRate": 0,
+   "latencyMs": {
+    "avg": 12.1,
+    "p50": 7.9,
+    "p90": 20.3,
+    "p95": 34.4,
+    "p99": 84.1,
+    "max": 175.8
+   }
+  },
+  "cpu": 0.2927062293770623,
+  "throttled": 7.499999999999999,
+  "mem": 37.9453125,
+  "runtime": 422,
+  "poolWait": 0
+ },
+ {
+  "impl": "go",
+  "step": {
+   "step": "rate200",
+   "scenario": "none",
+   "targetRate": 200,
+   "duration": "30s",
+   "from": "2026-11-22T11:07:01.849Z",
+   "to": "2026-11-22T11:07:31.849Z",
+   "requests": 6001,
+   "throughput": 200,
+   "accepted": 3847,
+   "status": {
+    "202": 3847,
+    "503": 2114,
+    "504": 40
+   },
+   "errorRate": 35.9,
+   "latencyMs": {
+    "avg": 89.2,
+    "p50": 8.2,
+    "p90": 204.6,
+    "p95": 579.9,
+    "p99": 1319.7,
+    "max": 2094.6
+   }
+  },
+  "cpu": 0.3661964500000002,
+  "throttled": 46.00000000000001,
+  "mem": 60.34765625,
+  "runtime": 727,
+  "poolWait": 20.700000000000003
+ },
+ {
+  "impl": "go",
+  "step": {
+   "step": "rate300",
+   "scenario": "none",
+   "targetRate": 300,
+   "duration": "30s",
+   "from": "2026-11-22T11:07:31.849Z",
+   "to": "2026-11-22T11:08:01.849Z",
+   "requests": 8705,
+   "throughput": 290.2,
+   "accepted": 8510,
+   "status": {
+    "202": 8510,
+    "503": 60,
+    "504": 135
+   },
+   "errorRate": 2.2,
+   "latencyMs": {
+    "avg": 1640.8,
+    "p50": 1904.8,
+    "p90": 2648.4,
+    "p95": 3245,
+    "p99": 4051.2,
+    "max": 4293.5
+   }
+  },
+  "cpu": 0.5010580927472085,
+  "throttled": 100,
+  "mem": 99.69140625,
+  "runtime": 2013,
+  "poolWait": 267.03888134399676
+ },
+ {
+  "impl": "go",
+  "step": {
+   "step": "rate400",
+   "scenario": "none",
+   "targetRate": 400,
+   "duration": "30s",
+   "from": "2026-11-22T11:08:01.849Z",
+   "to": "2026-11-22T11:08:31.849Z",
+   "requests": 3482,
+   "throughput": 116.1,
+   "accepted": 936,
+   "status": {
+    "202": 936,
+    "503": 1279,
+    "504": 281
+   },
+   "errorRate": 73.1,
+   "latencyMs": {
+    "avg": 12162.7,
+    "p50": 10570.5,
+    "p90": 26914.8,
+    "p95": 28775.9,
+    "p99": 33781.7,
+    "max": 35841
+   }
+  },
+  "cpu": 0.47627019952587896,
+  "throttled": 80.6930693069307,
+  "mem": 127.98828125,
+  "runtime": 5528,
+  "poolWait": 83.81074674041881
+ }
+]

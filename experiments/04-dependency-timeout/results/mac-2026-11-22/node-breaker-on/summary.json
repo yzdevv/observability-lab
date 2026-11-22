@@ -1,0 +1,137 @@
+{
+  "impl": "node",
+  "scenario": "mix",
+  "target": "gateway",
+  "startedAt": "2026-11-22T10:47:52.499Z",
+  "steps": [
+    {
+      "step": "mix-none",
+      "scenario": "none",
+      "targetRate": 10,
+      "duration": "180s",
+      "from": "2026-11-22T10:47:52.499Z",
+      "to": "2026-11-22T10:50:52.499Z",
+      "requests": 1766,
+      "throughput": 9.8,
+      "accepted": 1684,
+      "status": {
+        "202": 1684,
+        "503": 79,
+        "504": 3
+      },
+      "errorRate": 4.6,
+      "latencyMs": {
+        "avg": 131.5,
+        "p50": 21.2,
+        "p90": 207.9,
+        "p95": 433.2,
+        "p99": 3208.4,
+        "max": 7216.8
+      },
+      "byWindow": {
+        "outage": {
+          "requests": 899,
+          "throughput": null,
+          "accepted": 888,
+          "status": {
+            "202": 888,
+            "503": 11
+          },
+          "errorRate": 1.2,
+          "latencyMs": {
+            "avg": 58.8,
+            "p50": 19.8,
+            "p90": 147.2,
+            "p95": 278.4,
+            "p99": 603.6,
+            "max": 922.6
+          }
+        },
+        "healthy": {
+          "requests": 867,
+          "throughput": null,
+          "accepted": 796,
+          "status": {
+            "202": 796,
+            "503": 68,
+            "504": 3
+          },
+          "errorRate": 8.2,
+          "latencyMs": {
+            "avg": 206.9,
+            "p50": 23.8,
+            "p90": 323.4,
+            "p95": 709.7,
+            "p99": 5173.1,
+            "max": 7216.8
+          }
+        }
+      }
+    },
+    {
+      "step": "mix-dependency-timeout",
+      "scenario": "dependency-timeout",
+      "targetRate": 40,
+      "duration": "180s",
+      "from": "2026-11-22T10:47:52.499Z",
+      "to": "2026-11-22T10:50:52.499Z",
+      "requests": 7053,
+      "throughput": 39.2,
+      "accepted": 2943,
+      "status": {
+        "202": 2943,
+        "503": 4026,
+        "504": 84
+      },
+      "errorRate": 58.3,
+      "latencyMs": {
+        "avg": 117.8,
+        "p50": 14.5,
+        "p90": 194.6,
+        "p95": 462,
+        "p99": 2946.3,
+        "max": 7104.9
+      },
+      "byWindow": {
+        "outage": {
+          "requests": 3599,
+          "throughput": null,
+          "accepted": 0,
+          "status": {
+            "202": 0,
+            "503": 3528,
+            "504": 71
+          },
+          "errorRate": 100,
+          "latencyMs": {
+            "avg": 46.2,
+            "p50": 9.1,
+            "p90": 106.3,
+            "p95": 292.9,
+            "p99": 549.5,
+            "max": 837.8
+          }
+        },
+        "healthy": {
+          "requests": 3454,
+          "throughput": null,
+          "accepted": 2943,
+          "status": {
+            "202": 2943,
+            "503": 498,
+            "504": 13
+          },
+          "errorRate": 14.8,
+          "latencyMs": {
+            "avg": 192.3,
+            "p50": 20.2,
+            "p90": 320.3,
+            "p95": 652.2,
+            "p99": 5166.2,
+            "max": 7104.9
+          }
+        }
+      }
+    }
+  ]
+}

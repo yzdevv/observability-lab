@@ -1,0 +1,78 @@
+{
+  "impl": "node",
+  "scenario": "cache-miss",
+  "target": "gateway",
+  "startedAt": "2026-11-22T10:36:49.819Z",
+  "steps": [
+    {
+      "step": "rate10",
+      "scenario": "cache-miss",
+      "targetRate": 10,
+      "duration": "30s",
+      "from": "2026-11-22T10:37:04.819Z",
+      "to": "2026-11-22T10:37:34.819Z",
+      "requests": 301,
+      "throughput": 10,
+      "accepted": 301,
+      "status": {
+        "202": 301
+      },
+      "errorRate": 0,
+      "latencyMs": {
+        "avg": 24.1,
+        "p50": 16.2,
+        "p90": 37.9,
+        "p95": 56.5,
+        "p99": 158.6,
+        "max": 295.6
+      }
+    },
+    {
+      "step": "rate25",
+      "scenario": "cache-miss",
+      "targetRate": 25,
+      "duration": "30s",
+      "from": "2026-11-22T10:37:34.819Z",
+      "to": "2026-11-22T10:38:04.819Z",
+      "requests": 751,
+      "throughput": 25,
+      "accepted": 751,
+      "status": {
+        "202": 751
+      },
+      "errorRate": 0,
+      "latencyMs": {
+        "avg": 19.2,
+        "p50": 11.1,
+        "p90": 21.9,
+        "p95": 44.5,
+        "p99": 239.9,
+        "max": 338.3
+      }
+    },
+    {
+      "step": "rate50",
+      "scenario": "cache-miss",
+      "targetRate": 50,
+      "duration": "30s",
+      "from": "2026-11-22T10:38:04.819Z",
+      "to": "2026-11-22T10:38:34.819Z",
+      "requests": 1500,
+      "throughput": 50,
+      "accepted": 1490,
+      "status": {
+        "202": 1490,
+        "503": 10
+      },
+      "errorRate": 0.7,
+      "latencyMs": {
+        "avg": 34.9,
+        "p50": 12.3,
+        "p90": 71,
+        "p95": 181.6,
+        "p99": 380.1,
+        "max": 511.3
+      }
+    }
+  ]
+}

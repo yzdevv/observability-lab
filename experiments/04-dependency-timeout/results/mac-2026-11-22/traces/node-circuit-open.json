@@ -1,0 +1,163 @@
+{
+ "traceId": "eee153f3c32b2b7009710df484eae",
+ "spans": [
+  {
+   "service": "order-api-node",
+   "name": "order.validate",
+   "spanId": "5ae1de5f5103239d",
+   "parentSpanId": "b022c153c54d5543",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344550794,
+   "endMs": 1795344550794.294,
+   "durationMs": 0.2939453125,
+   "status": "",
+   "attributes": {}
+  },
+  {
+   "service": "order-api-node",
+   "name": "product.lookup",
+   "spanId": "0a44020336eb5edb",
+   "parentSpanId": "b022c153c54d5543",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344550795,
+   "endMs": 1795344550883.76,
+   "durationMs": 88.760009765625,
+   "status": "",
+   "attributes": {
+    "product.id": "demo-004",
+    "cache.hit": true
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "payment.authorize",
+   "spanId": "3d84ed7829b8ba48",
+   "parentSpanId": "b022c153c54d5543",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344550884,
+   "endMs": 1795344550886.02,
+   "durationMs": 2.02001953125,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "lab.dependency": "payment-degraded",
+    "lab.breaker.state": "half-open",
+    "lab.breaker.rejected": true
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "get",
+   "spanId": "b1f2a11a3059c16e",
+   "parentSpanId": "0a44020336eb5edb",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344550799,
+   "endMs": 1795344550883.021,
+   "durationMs": 84.02099609375,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "get",
+    "db.system.name": "redis",
+    "db.query.text": "get lab:node:product:demo-004",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "POST /orders",
+   "spanId": "b022c153c54d5543",
+   "parentSpanId": "2a813104f8b3e809",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344550793,
+   "endMs": 1795344550885.726,
+   "durationMs": 92.72607421875,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.6",
+    "network.peer.port": 59646,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "node",
+    "client.address": "172.18.0.6",
+    "server.port": 8081,
+    "lab.impl": "node",
+    "lab.scenario": "dependency-timeout",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-node",
+    "http.route": "/orders"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST",
+   "spanId": "2a813104f8b3e809",
+   "parentSpanId": "6ca8daee662da230",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344550792,
+   "endMs": 1795344550889.138,
+   "durationMs": 97.137939453125,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://order-api-node:8081/orders",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8081,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.10",
+    "network.peer.port": 8081,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-node"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST /api/:impl/orders",
+   "spanId": "6ca8daee662da230",
+   "parentSpanId": "",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344550790,
+   "endMs": 1795344550890.492,
+   "durationMs": 100.491943359375,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.1",
+    "network.peer.port": 62464,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "Grafana k6/2.3.0",
+    "client.address": "172.18.0.1",
+    "server.port": 8088,
+    "lab.impl": "node",
+    "lab.scenario": "dependency-timeout",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/api/node/orders",
+    "server.address": "host.docker.internal",
+    "http.route": "/api/:impl/orders"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "gateway.guards",
+   "spanId": "7e64b42cd6d648ef",
+   "parentSpanId": "6ca8daee662da230",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344550791,
+   "endMs": 1795344550791.032,
+   "durationMs": 0.031982421875,
+   "status": "",
+   "attributes": {
+    "lab.guard.passed": true
+   }
+  }
+ ]
+}

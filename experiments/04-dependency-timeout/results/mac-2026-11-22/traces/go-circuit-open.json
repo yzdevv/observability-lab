@@ -1,0 +1,180 @@
+{
+ "traceId": "689dc45af97b2447b7803aacb96363",
+ "spans": [
+  {
+   "service": "gateway",
+   "name": "xinfo",
+   "spanId": "95b3b47715034d2c",
+   "parentSpanId": "b8cd1aa716cf7e05",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344921411,
+   "endMs": 1795344921411.938,
+   "durationMs": 0.93798828125,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "xinfo",
+    "db.system.name": "redis",
+    "db.query.text": "xinfo GROUPS lab:go:orders",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "gateway.guards",
+   "spanId": "b8cd1aa716cf7e05",
+   "parentSpanId": "2abe6528c88a45e2",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344921411,
+   "endMs": 1795344921412.237,
+   "durationMs": 1.237060546875,
+   "status": "",
+   "attributes": {
+    "lab.guard.passed": true
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST",
+   "spanId": "8b5890170d90aff5",
+   "parentSpanId": "2abe6528c88a45e2",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344921413,
+   "endMs": 1795344921416.178,
+   "durationMs": 3.177978515625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://order-api-go:8082/orders",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8082,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.7",
+    "network.peer.port": 8082,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST /api/:impl/orders",
+   "spanId": "2abe6528c88a45e2",
+   "parentSpanId": "",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344921411,
+   "endMs": 1795344921417.435,
+   "durationMs": 6.43505859375,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.1",
+    "network.peer.port": 58904,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "Grafana k6/2.3.0",
+    "client.address": "172.18.0.1",
+    "server.port": 8088,
+    "lab.impl": "go",
+    "lab.scenario": "dependency-timeout",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/api/go/orders",
+    "server.address": "host.docker.internal",
+    "http.route": "/api/:impl/orders"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "order.validate",
+   "spanId": "3c5a86f0d627e936",
+   "parentSpanId": "b3fd00403af7ef7d",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344921414.995,
+   "endMs": 1795344921415.007,
+   "durationMs": 0.011962890625,
+   "status": "",
+   "attributes": {}
+  },
+  {
+   "service": "order-api-go",
+   "name": "get",
+   "spanId": "aefc61e81f331864",
+   "parentSpanId": "0ae5ed6c3a5566e0",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344921415.145,
+   "endMs": 1795344921415.622,
+   "durationMs": 0.47705078125,
+   "status": "",
+   "attributes": {
+    "db.system.name": "redis",
+    "db.operation.name": "get",
+    "server.address": "redis:6379"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "product.lookup",
+   "spanId": "0ae5ed6c3a5566e0",
+   "parentSpanId": "b3fd00403af7ef7d",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344921415.118,
+   "endMs": 1795344921415.774,
+   "durationMs": 0.656005859375,
+   "status": "",
+   "attributes": {
+    "product.id": "demo-008",
+    "cache.hit": true
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "payment.authorize",
+   "spanId": "c1282dbeb98f6896",
+   "parentSpanId": "b3fd00403af7ef7d",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344921415.781,
+   "endMs": 1795344921415.804,
+   "durationMs": 0.02294921875,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "lab.dependency": "payment-degraded",
+    "lab.breaker.state": "half-open",
+    "lab.breaker.rejected": true
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "POST /orders",
+   "spanId": "b3fd00403af7ef7d",
+   "parentSpanId": "8b5890170d90aff5",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344921414.74,
+   "endMs": 1795344921415.928,
+   "durationMs": 1.18798828125,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "server.port": 8082,
+    "network.peer.address": "172.18.0.6",
+    "network.peer.port": 40690,
+    "user_agent.original": "node",
+    "client.address": "172.18.0.6",
+    "network.protocol.version": "1.1",
+    "lab.impl": "go",
+    "lab.scenario": "dependency-timeout",
+    "http.request.body.size": 69,
+    "http.response.body.size": 80,
+    "http.response.status_code": 503,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go",
+    "http.route": "/orders"
+   }
+  }
+ ]
+}

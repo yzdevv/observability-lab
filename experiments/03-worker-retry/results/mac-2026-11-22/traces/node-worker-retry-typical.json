@@ -1,0 +1,606 @@
+{
+ "traceId": "d78b6c054e79cd621d79f5439167c584",
+ "spans": [
+  {
+   "service": "gateway",
+   "name": "gateway.guards",
+   "spanId": "7c6c85e08e1a7ec6",
+   "parentSpanId": "a934dd0f7c698267",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245671,
+   "endMs": 1795344245672.168,
+   "durationMs": 1.16796875,
+   "status": "",
+   "attributes": {
+    "lab.guard.passed": true
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST",
+   "spanId": "5b20f9528380c6ad",
+   "parentSpanId": "a934dd0f7c698267",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245673,
+   "endMs": 1795344245685.021,
+   "durationMs": 12.02099609375,
+   "status": "",
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://order-api-node:8081/orders",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8081,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.10",
+    "network.peer.port": 8081,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-node"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST /api/:impl/orders",
+   "spanId": "a934dd0f7c698267",
+   "parentSpanId": "",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344245670,
+   "endMs": 1795344245685.127,
+   "durationMs": 15.126953125,
+   "status": "",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.1",
+    "network.peer.port": 55424,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "Grafana k6/2.3.0",
+    "client.address": "172.18.0.1",
+    "server.port": 8088,
+    "lab.impl": "node",
+    "lab.scenario": "worker-retry",
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/api/node/orders",
+    "server.address": "host.docker.internal",
+    "http.route": "/api/:impl/orders"
+   }
+  },
+  {
+   "service": "fake-payment",
+   "name": "POST /authorize",
+   "spanId": "25772c7acbe950c4",
+   "parentSpanId": "0cf5901d78c9fc6f",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344245675.335,
+   "endMs": 1795344245678.828,
+   "durationMs": 3.492919921875,
+   "status": "",
+   "attributes": {
+    "url.scheme": "http",
+    "server.port": 8083,
+    "network.peer.address": "172.18.0.10",
+    "network.peer.port": 43434,
+    "user_agent.original": "node",
+    "client.address": "172.18.0.10",
+    "network.protocol.version": "1.1",
+    "http.response.body.size": 20,
+    "http.response.status_code": 200,
+    "http.request.method": "POST",
+    "url.path": "/authorize",
+    "server.address": "fake-payment"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.fulfil",
+   "spanId": "4a3f8345c0cd2512",
+   "parentSpanId": "eb2850d003a16434",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245684,
+   "endMs": 1795344245704.712,
+   "durationMs": 20.7119140625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "lab.simulated": true
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.process",
+   "spanId": "eb2850d003a16434",
+   "parentSpanId": "c2109a4d90f0e4f4",
+   "kind": "SPAN_KIND_CONSUMER",
+   "startMs": 1795344245684,
+   "endMs": 1795344245708.918,
+   "durationMs": 24.91796875,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96",
+    "lab.impl": "node",
+    "lab.scenario": "worker-retry",
+    "lab.attempt": 1,
+    "messaging.system": "redis",
+    "messaging.operation.type": "process",
+    "messaging.destination.name": "lab:node:orders",
+    "messaging.message.id": "1795344245683-0",
+    "lab.retry.scheduled": true,
+    "lab.retry.delay_ms": 500
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.fulfil",
+   "spanId": "b9dbfd6df018d826",
+   "parentSpanId": "55d6e9725a89ac54",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344246372,
+   "endMs": 1795344246404.811,
+   "durationMs": 32.81103515625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "lab.simulated": true
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.process",
+   "spanId": "55d6e9725a89ac54",
+   "parentSpanId": "c2109a4d90f0e4f4",
+   "kind": "SPAN_KIND_CONSUMER",
+   "startMs": 1795344246372,
+   "endMs": 1795344246413.612,
+   "durationMs": 41.612060546875,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96",
+    "lab.impl": "node",
+    "lab.scenario": "worker-retry",
+    "lab.attempt": 2,
+    "messaging.system": "redis",
+    "messaging.operation.type": "process",
+    "messaging.destination.name": "lab:node:orders",
+    "messaging.message.id": "1795344246371-1",
+    "lab.retry.scheduled": true,
+    "lab.retry.delay_ms": 1000
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.fulfil",
+   "spanId": "d42684cae9c0a66c",
+   "parentSpanId": "babcd1ff0b9ea2f8",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344247636,
+   "endMs": 1795344247659.789,
+   "durationMs": 23.7890625,
+   "status": "",
+   "attributes": {
+    "lab.simulated": true
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "order.process",
+   "spanId": "babcd1ff0b9ea2f8",
+   "parentSpanId": "c2109a4d90f0e4f4",
+   "kind": "SPAN_KIND_CONSUMER",
+   "startMs": 1795344247636,
+   "endMs": 1795344247662.757,
+   "durationMs": 26.757080078125,
+   "status": "",
+   "attributes": {
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96",
+    "lab.impl": "node",
+    "lab.scenario": "worker-retry",
+    "lab.attempt": 3,
+    "messaging.system": "redis",
+    "messaging.operation.type": "process",
+    "messaging.destination.name": "lab:node:orders",
+    "messaging.message.id": "1795344247636-0",
+    "order.updated": true
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg-pool.connect",
+   "spanId": "282e25454df25b4a",
+   "parentSpanId": "eb2850d003a16434",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245705,
+   "endMs": 1795344245705.084,
+   "durationMs": 0.083984375,
+   "status": "",
+   "attributes": {
+    "db.postgresql.idle.timeout.millis": 10000,
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg.query:UPDATE lab",
+   "spanId": "6ee712160de7b85d",
+   "parentSpanId": "eb2850d003a16434",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245705,
+   "endMs": 1795344245706.618,
+   "durationMs": 1.617919921875,
+   "status": "",
+   "attributes": {
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "db.query.text": "\nUPDATE orders SET attempts = attempts + 1\nWHERE id = $1 AND status = 'queued'",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg-pool.connect",
+   "spanId": "024b04a1192ba900",
+   "parentSpanId": "55d6e9725a89ac54",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344246405,
+   "endMs": 1795344246405.081,
+   "durationMs": 0.0810546875,
+   "status": "",
+   "attributes": {
+    "db.postgresql.idle.timeout.millis": 10000,
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg.query:UPDATE lab",
+   "spanId": "e1009bf460935b31",
+   "parentSpanId": "55d6e9725a89ac54",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344246405,
+   "endMs": 1795344246410.6,
+   "durationMs": 5.60009765625,
+   "status": "",
+   "attributes": {
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "db.query.text": "\nUPDATE orders SET attempts = attempts + 1\nWHERE id = $1 AND status = 'queued'",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg-pool.connect",
+   "spanId": "b527f121419a9d41",
+   "parentSpanId": "babcd1ff0b9ea2f8",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344247660,
+   "endMs": 1795344247660.094,
+   "durationMs": 0.093994140625,
+   "status": "",
+   "attributes": {
+    "db.postgresql.idle.timeout.millis": 10000,
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "pg.query:UPDATE lab",
+   "spanId": "94aacec0a30b00ec",
+   "parentSpanId": "babcd1ff0b9ea2f8",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344247660,
+   "endMs": 1795344247661.858,
+   "durationMs": 1.85791015625,
+   "status": "",
+   "attributes": {
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "db.query.text": "\nUPDATE orders\nSET status = 'completed', total_cents = quantity * unit_price_cents,\n    attempts = attempts + 1, processed_at = now()\nWHERE id = $1 AND status = 'queued'",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "zadd",
+   "spanId": "2c6a209e11bb9460",
+   "parentSpanId": "eb2850d003a16434",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245707,
+   "endMs": 1795344245707.429,
+   "durationMs": 0.428955078125,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "zadd",
+    "db.system.name": "redis",
+    "db.query.text": "zadd lab:node:retry [2 other arguments]",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "xack",
+   "spanId": "aefa7b266d4d81a4",
+   "parentSpanId": "eb2850d003a16434",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245709,
+   "endMs": 1795344245709.62,
+   "durationMs": 0.6201171875,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "xack",
+    "db.system.name": "redis",
+    "db.query.text": "xack lab:node:orders workers 1795344245683-0",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "zadd",
+   "spanId": "8d07dd6ce76e95cd",
+   "parentSpanId": "55d6e9725a89ac54",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344246411,
+   "endMs": 1795344246412.176,
+   "durationMs": 1.176025390625,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "zadd",
+    "db.system.name": "redis",
+    "db.query.text": "zadd lab:node:retry [2 other arguments]",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "xack",
+   "spanId": "06a10cd957320f6d",
+   "parentSpanId": "55d6e9725a89ac54",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344246413,
+   "endMs": 1795344246413.793,
+   "durationMs": 0.79296875,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "xack",
+    "db.system.name": "redis",
+    "db.query.text": "xack lab:node:orders workers 1795344246371-1",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "worker-node",
+   "name": "xack",
+   "spanId": "0634d705ab6d4e89",
+   "parentSpanId": "babcd1ff0b9ea2f8",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344247662,
+   "endMs": 1795344247662.356,
+   "durationMs": 0.35595703125,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "xack",
+    "db.system.name": "redis",
+    "db.query.text": "xack lab:node:orders workers 1795344247636-0",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "pg.query:INSERT lab",
+   "spanId": "cc4d13a428d3fe51",
+   "parentSpanId": "a4aa8da1cd564c22",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245679,
+   "endMs": 1795344245682.57,
+   "durationMs": 3.570068359375,
+   "status": "",
+   "attributes": {
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "db.query.text": "\nINSERT INTO orders (id, product_id, quantity, unit_price_cents, impl, scenario, status)\nSELECT $1::uuid, $2::text, $3::int, $4::int, $5::text, $6::text, 'queued'\nFROM pg_sleep($7::float8)",
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "pg-pool.connect",
+   "spanId": "d2762777cc479da6",
+   "parentSpanId": "a4aa8da1cd564c22",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245679,
+   "endMs": 1795344245679.076,
+   "durationMs": 0.075927734375,
+   "status": "",
+   "attributes": {
+    "db.postgresql.idle.timeout.millis": 10000,
+    "db.system.name": "postgresql",
+    "db.namespace": "lab",
+    "server.port": 5432,
+    "server.address": "postgres"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "order.persist",
+   "spanId": "a4aa8da1cd564c22",
+   "parentSpanId": "7f7f3afb698576b4",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245679,
+   "endMs": 1795344245682.805,
+   "durationMs": 3.804931640625,
+   "status": "",
+   "attributes": {
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "order.enqueue",
+   "spanId": "c2109a4d90f0e4f4",
+   "parentSpanId": "7f7f3afb698576b4",
+   "kind": "SPAN_KIND_PRODUCER",
+   "startMs": 1795344245683,
+   "endMs": 1795344245683.615,
+   "durationMs": 0.614990234375,
+   "status": "",
+   "attributes": {
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96",
+    "messaging.system": "redis",
+    "messaging.operation.type": "send",
+    "messaging.destination.name": "lab:node:orders",
+    "messaging.message.id": "1795344245683-0"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "order.validate",
+   "spanId": "c97d93bf4dfe01da",
+   "parentSpanId": "7f7f3afb698576b4",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245674,
+   "endMs": 1795344245674.025,
+   "durationMs": 0.02490234375,
+   "status": "",
+   "attributes": {}
+  },
+  {
+   "service": "order-api-node",
+   "name": "product.lookup",
+   "spanId": "7469bde197f0355c",
+   "parentSpanId": "7f7f3afb698576b4",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245674,
+   "endMs": 1795344245674.31,
+   "durationMs": 0.31005859375,
+   "status": "",
+   "attributes": {
+    "product.id": "demo-002",
+    "cache.hit": true
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "payment.authorize",
+   "spanId": "4191223a439327e4",
+   "parentSpanId": "7f7f3afb698576b4",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795344245674,
+   "endMs": 1795344245679.112,
+   "durationMs": 5.112060546875,
+   "status": "",
+   "attributes": {
+    "lab.dependency": "payment",
+    "lab.breaker.state": "closed",
+    "lab.breaker.probe": false
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "xadd",
+   "spanId": "64e1406c9c0776d0",
+   "parentSpanId": "c2109a4d90f0e4f4",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245683,
+   "endMs": 1795344245683.518,
+   "durationMs": 0.51806640625,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "xadd",
+    "db.system.name": "redis",
+    "db.query.text": "xadd lab:node:orders [14 other arguments]",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "get",
+   "spanId": "acfcd29ef02ac596",
+   "parentSpanId": "7469bde197f0355c",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245674,
+   "endMs": 1795344245674.232,
+   "durationMs": 0.23193359375,
+   "status": "",
+   "attributes": {
+    "db.operation.name": "get",
+    "db.system.name": "redis",
+    "db.query.text": "get lab:node:product:demo-002",
+    "server.port": 6379,
+    "server.address": "redis"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "POST /orders",
+   "spanId": "7f7f3afb698576b4",
+   "parentSpanId": "5b20f9528380c6ad",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795344245673,
+   "endMs": 1795344245683.579,
+   "durationMs": 10.5791015625,
+   "status": "",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.6",
+    "network.peer.port": 38514,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "node",
+    "client.address": "172.18.0.6",
+    "server.port": 8081,
+    "lab.impl": "node",
+    "lab.scenario": "worker-retry",
+    "order.id": "e2690b8a-9a47-4626-b91c-eaf957116f96",
+    "http.response.status_code": 202,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-node",
+    "http.route": "/orders"
+   }
+  },
+  {
+   "service": "order-api-node",
+   "name": "POST",
+   "spanId": "0cf5901d78c9fc6f",
+   "parentSpanId": "4191223a439327e4",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795344245674,
+   "endMs": 1795344245678.555,
+   "durationMs": 4.554931640625,
+   "status": "",
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://fake-payment:8083/authorize",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8083,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.5",
+    "network.peer.port": 8083,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 200,
+    "http.request.method": "POST",
+    "url.path": "/authorize",
+    "server.address": "fake-payment"
+   }
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+  "impl": "node",
+  "scenario": "none",
+  "target": "gateway",
+  "startedAt": "2026-11-22T11:29:01.216Z",
+  "steps": [
+    {
+      "step": "rate40",
+      "scenario": "none",
+      "targetRate": 40,
+      "duration": "40s",
+      "from": "2026-11-22T11:29:01.216Z",
+      "to": "2026-11-22T11:29:41.216Z",
+      "requests": 1518,
+      "throughput": 38,
+      "accepted": 1111,
+      "status": {
+        "202": 1111,
+        "503": 407
+      },
+      "errorRate": 26.8,
+      "latencyMs": {
+        "avg": 460.1,
+        "p50": 52,
+        "p90": 1048.9,
+        "p95": 2647.5,
+        "p99": 7147.9,
+        "max": 7535.7
+      }
+    }
+  ]
+}

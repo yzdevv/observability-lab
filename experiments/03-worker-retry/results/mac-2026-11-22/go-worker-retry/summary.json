@@ -1,0 +1,32 @@
+{
+  "impl": "go",
+  "scenario": "worker-retry",
+  "target": "gateway",
+  "startedAt": "2026-11-22T10:46:21.236Z",
+  "steps": [
+    {
+      "step": "rate5",
+      "scenario": "worker-retry",
+      "targetRate": 5,
+      "duration": "60s",
+      "from": "2026-11-22T10:46:31.236Z",
+      "to": "2026-11-22T10:47:31.236Z",
+      "requests": 301,
+      "throughput": 5,
+      "accepted": 299,
+      "status": {
+        "202": 299,
+        "429": 2
+      },
+      "errorRate": 0.7,
+      "latencyMs": {
+        "avg": 20.2,
+        "p50": 16.9,
+        "p90": 28.8,
+        "p95": 33.8,
+        "p99": 95.1,
+        "max": 292.2
+      }
+    }
+  ]
+}

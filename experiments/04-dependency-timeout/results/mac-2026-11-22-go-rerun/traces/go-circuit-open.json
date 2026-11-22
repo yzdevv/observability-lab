@@ -1,0 +1,162 @@
+{
+ "traceId": "b4fb2371d95f9fbc95879bb82cd4ea",
+ "spans": [
+  {
+   "service": "gateway",
+   "name": "gateway.guards",
+   "spanId": "4cdf7a90b5887e82",
+   "parentSpanId": "2f8efdd6bed259eb",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795348768987,
+   "endMs": 1795348768987.063,
+   "durationMs": 0.06298828125,
+   "status": "",
+   "attributes": {
+    "lab.guard.passed": true
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST",
+   "spanId": "471cd37c933da6c3",
+   "parentSpanId": "2f8efdd6bed259eb",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795348768988,
+   "endMs": 1795348768991.967,
+   "durationMs": 3.967041015625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "http.request.method_original": "POST",
+    "url.full": "http://order-api-go:8082/orders",
+    "url.query": "",
+    "url.scheme": "http",
+    "server.port": 8082,
+    "user_agent.original": "node",
+    "network.peer.address": "172.18.0.7",
+    "network.peer.port": 8082,
+    "network.protocol.version": "1.1",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go"
+   }
+  },
+  {
+   "service": "gateway",
+   "name": "POST /api/:impl/orders",
+   "spanId": "2f8efdd6bed259eb",
+   "parentSpanId": "",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795348768987,
+   "endMs": 1795348768992.94,
+   "durationMs": 5.93994140625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "network.peer.address": "172.18.0.1",
+    "network.peer.port": 61414,
+    "network.protocol.version": "1.1",
+    "user_agent.original": "Grafana k6/2.3.0",
+    "client.address": "172.18.0.1",
+    "server.port": 8088,
+    "lab.impl": "go",
+    "lab.scenario": "dependency-timeout",
+    "http.response.status_code": 503,
+    "error.type": "503",
+    "http.request.method": "POST",
+    "url.path": "/api/go/orders",
+    "server.address": "host.docker.internal",
+    "http.route": "/api/:impl/orders"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "order.validate",
+   "spanId": "060502733b19818c",
+   "parentSpanId": "ea60277cc3c3ede6",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795348768989.323,
+   "endMs": 1795348768989.332,
+   "durationMs": 0.009033203125,
+   "status": "",
+   "attributes": {}
+  },
+  {
+   "service": "order-api-go",
+   "name": "get",
+   "spanId": "023654efd190ddc2",
+   "parentSpanId": "6fa6f5da88151b44",
+   "kind": "SPAN_KIND_CLIENT",
+   "startMs": 1795348768989.357,
+   "endMs": 1795348768989.949,
+   "durationMs": 0.592041015625,
+   "status": "",
+   "attributes": {
+    "db.system.name": "redis",
+    "db.operation.name": "get",
+    "server.address": "redis:6379"
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "product.lookup",
+   "spanId": "6fa6f5da88151b44",
+   "parentSpanId": "ea60277cc3c3ede6",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795348768989.343,
+   "endMs": 1795348768989.988,
+   "durationMs": 0.64501953125,
+   "status": "",
+   "attributes": {
+    "product.id": "demo-003",
+    "cache.hit": true
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "payment.authorize",
+   "spanId": "e8eb0f1140e67018",
+   "parentSpanId": "ea60277cc3c3ede6",
+   "kind": "SPAN_KIND_INTERNAL",
+   "startMs": 1795348768989.992,
+   "endMs": 1795348768990.029,
+   "durationMs": 0.037109375,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "lab.dependency": "payment-degraded",
+    "lab.breaker.state": "open",
+    "lab.breaker.rejected": true
+   }
+  },
+  {
+   "service": "order-api-go",
+   "name": "POST /orders",
+   "spanId": "ea60277cc3c3ede6",
+   "parentSpanId": "471cd37c933da6c3",
+   "kind": "SPAN_KIND_SERVER",
+   "startMs": 1795348768989.111,
+   "endMs": 1795348768990.123,
+   "durationMs": 1.011962890625,
+   "status": "STATUS_CODE_ERROR",
+   "attributes": {
+    "url.scheme": "http",
+    "server.port": 8082,
+    "network.peer.address": "172.18.0.6",
+    "network.peer.port": 43552,
+    "user_agent.original": "node",
+    "client.address": "172.18.0.6",
+    "network.protocol.version": "1.1",
+    "lab.impl": "go",
+    "lab.scenario": "dependency-timeout",
+    "http.request.body.size": 69,
+    "http.response.body.size": 80,
+    "http.response.status_code": 503,
+    "http.request.method": "POST",
+    "url.path": "/orders",
+    "server.address": "order-api-go",
+    "http.route": "/orders"
+   }
+  }
+ ]
+}

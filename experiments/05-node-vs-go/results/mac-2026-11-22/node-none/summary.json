@@ -1,0 +1,132 @@
+{
+  "impl": "node",
+  "scenario": "none",
+  "target": "api",
+  "startedAt": "2026-11-22T11:02:19.671Z",
+  "steps": [
+    {
+      "step": "rate50",
+      "scenario": "none",
+      "targetRate": 50,
+      "duration": "30s",
+      "from": "2026-11-22T11:02:34.671Z",
+      "to": "2026-11-22T11:03:04.671Z",
+      "requests": 1501,
+      "throughput": 50,
+      "accepted": 1499,
+      "status": {
+        "202": 1499,
+        "504": 2
+      },
+      "errorRate": 0.1,
+      "latencyMs": {
+        "avg": 91.7,
+        "p50": 10.6,
+        "p90": 309.2,
+        "p95": 554.8,
+        "p99": 1100.4,
+        "max": 1807.3
+      }
+    },
+    {
+      "step": "rate100",
+      "scenario": "none",
+      "targetRate": 100,
+      "duration": "30s",
+      "from": "2026-11-22T11:03:04.671Z",
+      "to": "2026-11-22T11:03:34.671Z",
+      "requests": 3001,
+      "throughput": 100,
+      "accepted": 1804,
+      "status": {
+        "202": 1804,
+        "503": 1131,
+        "504": 66
+      },
+      "errorRate": 39.9,
+      "latencyMs": {
+        "avg": 459.3,
+        "p50": 264.1,
+        "p90": 1141.4,
+        "p95": 1524.6,
+        "p99": 2024.1,
+        "max": 4154.1
+      }
+    },
+    {
+      "step": "rate200",
+      "scenario": "none",
+      "targetRate": 200,
+      "duration": "30s",
+      "from": "2026-11-22T11:03:34.671Z",
+      "to": "2026-11-22T11:04:04.671Z",
+      "requests": 5698,
+      "throughput": 189.9,
+      "accepted": 547,
+      "status": {
+        "202": 547,
+        "503": 5065,
+        "504": 86
+      },
+      "errorRate": 90.4,
+      "latencyMs": {
+        "avg": 820,
+        "p50": 385.7,
+        "p90": 2473.8,
+        "p95": 3464.9,
+        "p99": 8368.5,
+        "max": 8484.4
+      }
+    },
+    {
+      "step": "rate300",
+      "scenario": "none",
+      "targetRate": 300,
+      "duration": "30s",
+      "from": "2026-11-22T11:04:04.671Z",
+      "to": "2026-11-22T11:04:34.671Z",
+      "requests": 8446,
+      "throughput": 281.5,
+      "accepted": 0,
+      "status": {
+        "202": 0,
+        "503": 8444,
+        "504": 2
+      },
+      "errorRate": 100,
+      "latencyMs": {
+        "avg": 1069.1,
+        "p50": 409,
+        "p90": 3665.7,
+        "p95": 5641.5,
+        "p99": 7599.8,
+        "max": 11796.6
+      }
+    },
+    {
+      "step": "rate400",
+      "scenario": "none",
+      "targetRate": 400,
+      "duration": "30s",
+      "from": "2026-11-22T11:04:34.671Z",
+      "to": "2026-11-22T11:05:04.671Z",
+      "requests": 10954,
+      "throughput": 365.1,
+      "accepted": 0,
+      "status": {
+        "202": 0,
+        "503": 10951,
+        "504": 3
+      },
+      "errorRate": 100,
+      "latencyMs": {
+        "avg": 1886,
+        "p50": 1211.6,
+        "p90": 3481.6,
+        "p95": 4261.1,
+        "p99": 18112.7,
+        "max": 21191.8
+      }
+    }
+  ]
+}
