@@ -8,6 +8,9 @@ function num(name: string, fallback: number): number {
   return value;
 }
 
+// Known scenarios: only these become a span attribute (keeps metric labels bounded).
+export const SCENARIOS = ['none', 'slow-db', 'cache-miss', 'worker-retry', 'dependency-timeout'] as const;
+
 export const IMPLS = ['node', 'go'] as const;
 export type Impl = (typeof IMPLS)[number];
 

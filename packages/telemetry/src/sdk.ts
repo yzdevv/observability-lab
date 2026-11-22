@@ -10,6 +10,7 @@ import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { IORedisInstrumentation } from '@opentelemetry/instrumentation-ioredis';
 import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino';
 import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { registerCgroupMetrics } from './cgroup.ts';
 
 // Health checks run every few seconds; tracing them would bury the interesting traces.
@@ -23,6 +24,8 @@ const enabled = (signal: 'METRICS' | 'LOGS') => (process.env[`OTEL_${signal}_EXP
 export function startTelemetry(): void {
   if (sdk || process.env.OTEL_SDK_DISABLED === 'true') return;
   sdk = new NodeSDK({
+    // lab.impl on the resource, as in Go, so every span metric of an order service carries it.
+    resource: process.env.LAB_IMPL ? resourceFromAttributes({ 'lab.impl': process.env.LAB_IMPL }) : undefined,
     traceExporter: new OTLPTraceExporter(),
     metricReaders: enabled('METRICS')
       ? [new PeriodicExportingMetricReader({

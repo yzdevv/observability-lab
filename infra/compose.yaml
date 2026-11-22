@@ -120,6 +120,7 @@ services:
     environment:
       <<: [*db-env, *otel-env, *payment-env]
       OTEL_SERVICE_NAME: order-api-node
+      LAB_IMPL: node
       PORT: "8081"
     depends_on:
       <<: *depends
@@ -139,6 +140,7 @@ services:
     environment:
       <<: [*db-env, *otel-env]
       OTEL_SERVICE_NAME: worker-node
+      LAB_IMPL: node
     depends_on:
       <<: *depends
       order-api-node: { condition: service_started }   # same image; built by order-api-node

@@ -3,7 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import { Redis } from 'ioredis';
 import { metrics, trace } from '@opentelemetry/api';
 import { routeSpanHook, shutdownTelemetry, traceLogFields, withSpan } from '@lab/telemetry';
-import { IMPLS, config, type Impl } from './config.ts';
+import { IMPLS, SCENARIOS, config, type Impl } from './config.ts';
 import { INFLIGHT_REFUSAL, Inflight, checkGuards, createBacklogReaders, hostLoad1, type GuardVerdict } from './guards.ts';
 
 const redis = new Redis(config.redisUrl, { maxRetriesPerRequest: 2 });
@@ -96,7 +96,12 @@ app.post<{ Params: { impl: Impl }; Body: Record<string, unknown> }>(
   },
   async (req, reply) => {
     const { impl } = req.params;
-    trace.getActiveSpan()?.setAttribute('lab.impl', impl);
+    const scenario = req.body?.scenario ?? 'none';
+    trace.getActiveSpan()?.setAttributes({
+      'lab.impl': impl,
+      // The order API validates the value; here it only labels the span (and the RED metrics).
+      'lab.scenario': (SCENARIOS as readonly unknown[]).includes(scenario) ? String(scenario) : 'invalid',
+    });
     const shed = (verdict: Exclude<GuardVerdict, { ok: true }>) => {
       trace.getActiveSpan()?.setAttribute('lab.shed_reason', verdict.reason);
       shedCounter.add(1, { 'lab.impl': impl, 'lab.shed_reason': verdict.reason });

@@ -26,6 +26,7 @@ connectors:
   service_graph:
     latency_histogram_buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2.5s, 5s]
     dimensions: [lab.impl]
+    metrics_flush_interval: 15s   # default 60 s is too coarse for 1-minute rates
     store:
       ttl: 5s
       max_items: 2000
