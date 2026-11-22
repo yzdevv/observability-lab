@@ -7,7 +7,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && pnpm -s --filter @lab/web typecheck",
     "test:contract": "node --test tests/contract/*.test.ts"
   },
   "devDependencies": {

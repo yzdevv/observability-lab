@@ -1,6 +1,7 @@
 packages:
   - apps/gateway
   - apps/order-node
+  - apps/web
   - packages/telemetry
 allowBuilds:
   # only a postinstall version check; not needed
