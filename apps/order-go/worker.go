@@ -30,6 +30,7 @@ func runWorker(ctx context.Context, s *Service) error {
 	// worker died before acknowledging them.
 	go every(ctx, s.cfg.RetryPromote, func() error { return s.promoteDueRetries(ctx) })
 	go every(ctx, s.cfg.ReclaimEvery, func() error { return s.reclaimStale(ctx, stream, consumer) })
+	go every(ctx, s.cfg.CleanupEvery, func() error { return s.deleteOldOrders(ctx) })
 
 	for ctx.Err() == nil {
 		res, err := s.rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
@@ -87,6 +88,30 @@ func every(ctx context.Context, interval time.Duration, task func() error) {
 			}
 		}
 	}
+}
+
+// deleteOldOrders keeps the public demo's table small: orders older than the retention are removed.
+// It runs under an unsampled parent, so the query is not traced (every trace starts at the gateway).
+func (s *Service) deleteOldOrders(ctx context.Context) error {
+	tag, err := s.db.Exec(untraced(ctx),
+		`DELETE FROM orders WHERE impl = $1 AND created_at < now() - make_interval(secs => $2)`,
+		impl, s.cfg.Retention.Seconds())
+	if err != nil {
+		return err
+	}
+	if n := tag.RowsAffected(); n > 0 {
+		slog.Info("old orders deleted", "count", n, "olderThanH", s.cfg.Retention.Hours())
+	}
+	return nil
+}
+
+// untraced returns a context whose parent span is valid but not sampled, so instrumented calls
+// made with it create no exported spans (the default sampler follows the parent's decision).
+func untraced(ctx context.Context) context.Context {
+	sc := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID: trace.TraceID{1}, SpanID: trace.SpanID{1}, TraceFlags: 0,
+	})
+	return trace.ContextWithSpanContext(ctx, sc)
 }
 
 func (s *Service) reclaimStale(ctx context.Context, stream, consumer string) error {

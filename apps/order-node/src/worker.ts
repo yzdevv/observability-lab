@@ -131,12 +131,22 @@ async function reclaimStale() {
   await Promise.all(live.map(([id, flat]) => processEntry(id, toFields(flat))));
 }
 
+// Keep the public demo's table small. Not traced: database spans need a parent (requireParentSpan).
+async function deleteOldOrders() {
+  const res = await deps.db.query(
+    'DELETE FROM orders WHERE impl = $1 AND created_at < now() - make_interval(hours => $2)',
+    [IMPL, config.retentionHours],
+  );
+  if (res.rowCount) log('info', 'old orders deleted', { count: res.rowCount, olderThanH: config.retentionHours });
+}
+
 async function run() {
   await ensureGroup();
   log('info', 'worker started', { consumer, stream: keys.stream });
   const timers = [
     every(config.retryPromoteMs, async () => { await promoteDueRetries(deps); }),
     every(config.reclaimEveryMs, reclaimStale),
+    every(config.cleanupEveryMs, deleteOldOrders),
   ];
   while (running) {
     try {

@@ -23,6 +23,8 @@ type Config struct {
 	RetryPromote    time.Duration // how often due retries move back to the stream
 	ReclaimIdle     time.Duration // unacked this long = its worker died; take it over
 	ReclaimEvery    time.Duration
+	Retention       time.Duration // orders older than this are deleted by the worker
+	CleanupEvery    time.Duration
 
 	PaymentURL        string
 	DependencyTimeout time.Duration
@@ -68,6 +70,8 @@ func loadConfig() (Config, error) {
 		RetryPromote:    time.Duration(intEnv("RETRY_PROMOTE_MS", 250)) * time.Millisecond,
 		ReclaimIdle:     time.Duration(intEnv("RECLAIM_IDLE_MS", 60000)) * time.Millisecond,
 		ReclaimEvery:    time.Duration(intEnv("RECLAIM_EVERY_MS", 15000)) * time.Millisecond,
+		Retention:       time.Duration(intEnv("ORDER_RETENTION_HOURS", 6)) * time.Hour,
+		CleanupEvery:    time.Duration(intEnv("CLEANUP_EVERY_MS", 600000)) * time.Millisecond,
 
 		PaymentURL:        envOr("PAYMENT_URL", "http://fake-payment:8083"),
 		DependencyTimeout: time.Duration(intEnv("DEPENDENCY_TIMEOUT_MS", 500)) * time.Millisecond,

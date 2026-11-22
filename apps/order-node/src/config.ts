@@ -29,6 +29,8 @@ export const config = {
   retryPromoteMs: int('RETRY_PROMOTE_MS', 250),    // how often due retries move back to the stream
   reclaimIdleMs: int('RECLAIM_IDLE_MS', 60_000),   // unacked this long = its worker died; take it over
   reclaimEveryMs: int('RECLAIM_EVERY_MS', 15_000),
+  retentionHours: int('ORDER_RETENTION_HOURS', 6),     // older orders are deleted by the worker
+  cleanupEveryMs: int('CLEANUP_EVERY_MS', 600_000),
   paymentUrl: process.env.PAYMENT_URL ?? 'http://fake-payment:8083',
   dependencyTimeoutMs: int('DEPENDENCY_TIMEOUT_MS', 500),
   breakerEnabled: process.env.BREAKER_ENABLED !== 'false',

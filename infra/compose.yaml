@@ -160,6 +160,8 @@ services:
     environment:
       <<: [*db-env, *otel-env]
       OTEL_SERVICE_NAME: worker-node
+      ORDER_RETENTION_HOURS: ${ORDER_RETENTION_HOURS:-6}   # the public demo keeps only recent orders
+      CLEANUP_EVERY_MS: ${CLEANUP_EVERY_MS:-600000}
       LAB_IMPL: node
     depends_on:
       <<: *depends
@@ -194,6 +196,8 @@ services:
     environment:
       <<: [*db-env, *otel-env]
       OTEL_SERVICE_NAME: worker-go
+      ORDER_RETENTION_HOURS: ${ORDER_RETENTION_HOURS:-6}   # the public demo keeps only recent orders
+      CLEANUP_EVERY_MS: ${CLEANUP_EVERY_MS:-600000}
       MODE: worker
     depends_on:
       <<: *depends
