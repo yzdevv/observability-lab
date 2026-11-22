@@ -22,6 +22,16 @@ services:
     volumes: !override
       - ./tempo.yaml:/etc/tempo.yaml:ro
       - /opt/homelab/lab-data/observability-lab/tempo:/var/tempo
+  prometheus:
+    <<: *slice
+    volumes: !override
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - /opt/homelab/lab-data/observability-lab/prometheus:/prometheus
+  loki:
+    <<: *slice
+    volumes: !override
+      - ./loki.yaml:/etc/loki/config.yaml:ro
+      - /opt/homelab/lab-data/observability-lab/loki:/loki
   grafana:
     <<: *slice
     volumes: !override

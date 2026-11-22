@@ -1,0 +1,22 @@
+# Prometheus receives metrics over OTLP from the collector (no scraping of the apps).
+global:
+  evaluation_interval: 30s
+
+otlp:
+  # Copied onto every series as labels; other resource attributes stay in target_info.
+  promote_resource_attributes:
+    - service.name
+    - service.namespace
+    - deployment.environment.name
+  keep_identifying_resource_attributes: true
+
+storage:
+  tsdb:
+    # OTLP pushes can arrive slightly out of order (batching in SDKs and the collector).
+    out_of_order_time_window: 10m
+
+scrape_configs:
+  - job_name: prometheus
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["localhost:9090"]

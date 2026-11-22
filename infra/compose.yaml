@@ -24,8 +24,9 @@ x-otel-env: &otel-env
   OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
   OTEL_RESOURCE_ATTRIBUTES: service.namespace=observability-lab,deployment.environment.name=${LAB_ENV:-dev}
   OTEL_BSP_SCHEDULE_DELAY: "1000"   # export spans every 1 s (default 5 s) so traces show up fast
-  OTEL_METRICS_EXPORTER: none   # metrics and logs arrive in Milestone D
-  OTEL_LOGS_EXPORTER: none
+  OTEL_METRICS_EXPORTER: otlp
+  OTEL_METRIC_EXPORT_INTERVAL: "10000"   # push metrics every 10 s
+  OTEL_LOGS_EXPORTER: otlp
 
 x-depends: &depends
   postgres: { condition: service_healthy }
@@ -172,7 +173,7 @@ services:
       - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
     environment:
       GOMEMLIMIT: 160MiB
-    depends_on: [tempo]
+    depends_on: [tempo, prometheus, loki]
     mem_limit: 192m
     cpus: 0.5
 
@@ -188,6 +189,35 @@ services:
     mem_limit: 512m
     cpus: 0.5
 
+  prometheus:
+    <<: *app
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=1GB
+      - --web.enable-otlp-receiver
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    environment:
+      GOMEMLIMIT: 320MiB
+    mem_limit: 384m
+    cpus: 0.5
+
+  loki:
+    <<: *app
+    image: grafana/loki:3.7.9
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./loki.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    environment:
+      GOMEMLIMIT: 320MiB
+    mem_limit: 384m
+    cpus: 0.5
+
   grafana:
     <<: *app
     image: grafana/grafana:13.2.6
@@ -196,10 +226,14 @@ services:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_NEWS_NEWS_FEED_ENABLED: "false"
+      # No plugin downloads at runtime: the rootfs is read-only, and an auto-update unloads the
+      # bundled Prometheus plugin before failing to write the new one.
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_PLUGINS_PREINSTALL_AUTO_UPDATE: "false"
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana
-    depends_on: [tempo]
+    depends_on: [tempo, prometheus, loki]
     mem_limit: 256m
     cpus: 0.5
 
@@ -209,4 +243,6 @@ networks:
 volumes:
   pgdata: {}
   tempo-data: {}
+  prometheus-data: {}
+  loki-data: {}
   grafana-data: {}
