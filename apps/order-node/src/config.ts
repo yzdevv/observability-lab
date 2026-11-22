@@ -24,10 +24,16 @@ export const config = {
   streamMaxLen: int('STREAM_MAXLEN', 10000),
   workMs: int('WORKER_WORK_MS', 20),
   workerBatch: int('WORKER_BATCH', 10),
+  maxAttempts: int('WORKER_MAX_ATTEMPTS', 3),
+  retryBaseMs: int('RETRY_BASE_MS', 500),          // backoff: 500 ms, 1 s, 2 s, …
+  retryPromoteMs: int('RETRY_PROMOTE_MS', 250),    // how often due retries move back to the stream
+  reclaimIdleMs: int('RECLAIM_IDLE_MS', 60_000),   // unacked this long = its worker died; take it over
+  reclaimEveryMs: int('RECLAIM_EVERY_MS', 15_000),
 };
 
 export const keys = {
   stream: `lab:${IMPL}:orders`,
   product: (id: string) => `lab:${IMPL}:product:${id}`,
+  retry: `lab:${IMPL}:retry`,
   group: 'workers',
 };

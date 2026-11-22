@@ -19,8 +19,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Scenarios handled by the order API. Worker scenarios arrive in later milestones.
-var scenarios = []string{"none", "slow-db", "cache-miss"}
+// worker-retry is handled by the worker; the others by the order API.
+var scenarios = []string{"none", "slow-db", "cache-miss", "worker-retry"}
 
 var (
 	productIDPattern = regexp.MustCompile(`^demo-\d{3}$`)

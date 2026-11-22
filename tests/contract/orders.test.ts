@@ -22,8 +22,9 @@ async function get(impl: string, id: string) {
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
 }
 
-async function waitCompleted(impl: string, id: string) {
-  for (let i = 0; i < 50; i++) {
+async function waitCompleted(impl: string, id: string, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
     const { body } = await get(impl, id);
     if (body.status === 'completed') return body;
     await sleep(100);
@@ -88,6 +89,17 @@ for (const impl of ['node', 'go']) {
       assert.ok(performance.now() - started >= 300, 'slow-db request returned too fast');
       const order = await waitCompleted(impl, String(res.body.orderId));
       assert.equal(order.scenario, 'slow-db');
+    });
+
+    it('worker-retry completes on the third attempt after backoff', async () => {
+      const started = Date.now();
+      const created = await post(impl, { productId: 'demo-004', quantity: 1, scenario: 'worker-retry' });
+      assert.equal(created.status, 202);
+      const order = await waitCompleted(impl, String(created.body.orderId), 10_000);
+      assert.equal(order.attempts, 3);
+      assert.equal(order.scenario, 'worker-retry');
+      // Backoff of 500 ms + 1 s between the attempts.
+      assert.ok(Date.now() - started >= 1500, `completed after ${Date.now() - started} ms, expected >= 1500`);
     });
 
     it('cache-miss still creates the order', async () => {

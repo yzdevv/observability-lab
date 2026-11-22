@@ -13,6 +13,8 @@ export type Span = {
   startMs: number;
   endMs: number;
   durationMs: number;
+  /** STATUS_CODE_ERROR when the span failed, '' when unset. Not available from search results. */
+  status: string;
   attributes: Record<string, unknown>;
 };
 
@@ -26,6 +28,7 @@ type OtlpSpan = {
   startTimeUnixNano: string;
   endTimeUnixNano: string;
   attributes?: OtlpAttr[];
+  status?: { code?: string };
 };
 type OtlpResourceSpans = {
   resource: { attributes: OtlpAttr[] };
@@ -62,6 +65,7 @@ export function flatten(body: TraceBody): Span[] {
           startMs,
           endMs,
           durationMs: endMs - startMs,
+          status: s.status?.code ?? '',
           attributes: attrs(s.attributes),
         };
       }),
@@ -208,6 +212,7 @@ async function searchChunk(filter: string, startSec: number, endSec: number, lim
         startMs,
         endMs: startMs + durationMs,
         durationMs,
+        status: '',
         attributes: a,
       });
     }

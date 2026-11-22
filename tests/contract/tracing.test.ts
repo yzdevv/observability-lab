@@ -68,6 +68,23 @@ for (const impl of ['node', 'go']) {
       assert.equal(enqueue.kind, 'SPAN_KIND_PRODUCER');
     });
 
+    it('shows all three worker-retry attempts in one trace', async () => {
+      const { traceId } = await createOrder(impl, 'worker-retry');
+      const worker = `worker-${impl}`;
+      const spans = await waitForTrace(traceId, (s) =>
+        s.filter((x) => x.service === worker && x.name === 'order.process').length === 3, 30_000);
+      const enqueue = byName(spans, `order-api-${impl}`, 'order.enqueue');
+      const attempts = spans
+        .filter((s) => s.service === worker && s.name === 'order.process')
+        .sort((a, b) => Number(a.attributes['lab.attempt']) - Number(b.attributes['lab.attempt']));
+      assert.deepEqual(attempts.map((s) => s.attributes['lab.attempt']), [1, 2, 3]);
+      // Every attempt continues from the request's enqueue span, so they line up as siblings.
+      for (const a of attempts) assert.equal(a.parentSpanId, enqueue.spanId);
+      assert.deepEqual(attempts.map((s) => s.status), ['STATUS_CODE_ERROR', 'STATUS_CODE_ERROR', attempts[2]!.status]);
+      assert.notEqual(attempts[2]!.status, 'STATUS_CODE_ERROR');
+      assert.equal(attempts[0]!.attributes['lab.retry.scheduled'], true);
+    });
+
     it('shows the slow INSERT for slow-db', async () => {
       const { traceId } = await createOrder(impl, 'slow-db');
       const spans = await waitForTrace(traceId, (s) => s.some((x) => x.name === 'order.persist'));

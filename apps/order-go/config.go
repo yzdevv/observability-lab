@@ -18,6 +18,11 @@ type Config struct {
 	StreamMaxLen    int64
 	Work            time.Duration
 	WorkerBatch     int64
+	MaxAttempts     int
+	RetryBase       time.Duration // backoff: 500 ms, 1 s, 2 s, …
+	RetryPromote    time.Duration // how often due retries move back to the stream
+	ReclaimIdle     time.Duration // unacked this long = its worker died; take it over
+	ReclaimEvery    time.Duration
 }
 
 func loadConfig() (Config, error) {
@@ -46,6 +51,11 @@ func loadConfig() (Config, error) {
 		StreamMaxLen:    int64(intEnv("STREAM_MAXLEN", 10000)),
 		Work:            time.Duration(intEnv("WORKER_WORK_MS", 20)) * time.Millisecond,
 		WorkerBatch:     int64(intEnv("WORKER_BATCH", 10)),
+		MaxAttempts:     intEnv("WORKER_MAX_ATTEMPTS", 3),
+		RetryBase:       time.Duration(intEnv("RETRY_BASE_MS", 500)) * time.Millisecond,
+		RetryPromote:    time.Duration(intEnv("RETRY_PROMOTE_MS", 250)) * time.Millisecond,
+		ReclaimIdle:     time.Duration(intEnv("RECLAIM_IDLE_MS", 60000)) * time.Millisecond,
+		ReclaimEvery:    time.Duration(intEnv("RECLAIM_EVERY_MS", 15000)) * time.Millisecond,
 	}
 	if cfg.DatabaseURL == "" {
 		errs = append(errs, fmt.Errorf("missing environment variable DATABASE_URL"))
@@ -67,3 +77,4 @@ const consumerGroup = "workers"
 
 func streamKey() string           { return "lab:" + impl + ":orders" }
 func productKey(id string) string { return "lab:" + impl + ":product:" + id }
+func retryKey() string            { return "lab:" + impl + ":retry" }

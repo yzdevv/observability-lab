@@ -3,8 +3,8 @@ import { SpanKind, injectTraceContext, withSpan } from '@lab/telemetry';
 import { IMPL, config, keys } from './config.ts';
 import type { Deps } from './deps.ts';
 
-// Scenarios handled by the order API. Worker scenarios arrive in later milestones.
-export const SCENARIOS = ['none', 'slow-db', 'cache-miss'] as const;
+// worker-retry is handled by the worker; the others by the order API.
+export const SCENARIOS = ['none', 'slow-db', 'cache-miss', 'worker-retry'] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 
 const PRODUCT_ID = /^demo-\d{3}$/;

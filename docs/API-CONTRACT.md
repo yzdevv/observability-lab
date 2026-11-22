@@ -84,7 +84,7 @@ milliseconds. `404` if not found.
 | `none` | — | Normal path |
 | `slow-db` | Order API | The order `INSERT` takes `SLOW_DB_MS` longer (default 300 ms) |
 | `cache-miss` | Order API | Skip the Redis read; always query Postgres for the product |
-| `worker-retry` | Worker | Processing fails on attempts 1–2, succeeds on attempt 3 (Milestone D) |
+| `worker-retry` | Worker | `order.fulfil` fails on attempts 1–2, succeeds on attempt 3; the order completes with `attempts = 3` after ~1.5 s of backoff |
 | `dependency-timeout` | Order API | Call to a slow fake dependency hits its timeout; circuit breaker opens after repeated failures (Milestone D) |
 
 Unknown values are rejected with `400`.
@@ -103,8 +103,29 @@ Unknown values are rejected with `400`.
 | `traceparent` | `00-…-…-01` | W3C trace context (empty until Milestone B) |
 | `tracestate` | | Optional |
 
-Workers `XACK` only after the database update succeeds. Unacked messages are reclaimed with
-`XAUTOCLAIM` after an idle timeout (Milestone D).
+Workers `XACK` only after the database update succeeds.
+
+### Retries
+
+A failed attempt (the simulated `worker-retry` failure) is handled, then acknowledged:
+
+1. `attempt < WORKER_MAX_ATTEMPTS` (3): record the attempt (`attempts = attempts + 1`), add the
+   message with `attempt + 1` to the sorted set `lab:{impl}:retry`, scored by its due time in epoch
+   ms. Backoff is `RETRY_BASE_MS × 2^(attempt-1)`: 500 ms, then 1 s.
+2. Last attempt: mark the order `failed`.
+
+Every `RETRY_PROMOTE_MS` (250 ms) the worker moves due entries back onto the stream with one Lua
+script (same text in both implementations), so a retry is never lost between the two steps. The
+retry keeps the original `traceparent`: all attempts are sibling `order.process` spans under the
+request's `order.enqueue`, with `lab.attempt`, and failed ones carry `lab.retry.scheduled` and
+`lab.retry.delay_ms`.
+
+### Crashed workers
+
+Entries delivered but not acknowledged for `RECLAIM_IDLE_MS` (60 s) are taken over with
+`XAUTOCLAIM` every `RECLAIM_EVERY_MS` (15 s) and processed again; the `UPDATE … WHERE status =
+'queued'` keeps that idempotent. Verified by claiming an entry with a fake consumer while the worker
+was stopped: the restarted worker completed the order after ~62 s.
 
 ## Redis keys
 
@@ -112,6 +133,7 @@ Workers `XACK` only after the database update succeeds. Unacked messages are rec
 |---|---|---|
 | `lab:{impl}:product:{productId}` | string (JSON `{id, name, priceCents}`) | 60 s |
 | `lab:{impl}:orders` | stream | capped |
+| `lab:{impl}:retry` | sorted set (member = JSON message, score = due time ms) | none; entries leave when promoted |
 
 Redis runs with `maxmemory 48mb` and `volatile-lru`: only TTL'd cache keys can be evicted, never
 streams.
@@ -157,5 +179,12 @@ FROM pg_sleep($7::float8);
 UPDATE orders
 SET status = 'completed', total_cents = quantity * unit_price_cents,
     attempts = attempts + 1, processed_at = now()
+WHERE id = $1 AND status = 'queued';
+
+-- failed attempt, retry scheduled
+UPDATE orders SET attempts = attempts + 1 WHERE id = $1 AND status = 'queued';
+
+-- last attempt failed
+UPDATE orders SET status = 'failed', attempts = attempts + 1, processed_at = now()
 WHERE id = $1 AND status = 'queued';
 ```
