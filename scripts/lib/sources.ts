@@ -42,11 +42,15 @@ export async function lokiQuery(q: string, startSec: number, endSec: number, lim
     .sort((a, b) => a.ts - b.ts);
 }
 
-/** Run SQL in the dev Postgres container and return rows as objects (psql CSV with header). */
+/** Run SQL in the lab's Postgres container and return rows as objects (psql CSV with header).
+ *  Local Docker by default (the dev stack); LAB_SSH=<host> runs it on that host instead (the homelab).
+ *  The query goes in on stdin, so it needs no shell quoting either way. */
 export function sql(query: string): Record<string, string>[] {
-  const out = execFileSync('docker', ['exec', 'observability-lab-postgres-1', 'psql', '-U', 'lab', '-d', 'lab', '--csv', '-c', query], {
-    encoding: 'utf8',
-  });
+  const psql = ['docker', 'exec', '-i', 'observability-lab-postgres-1', 'psql', '-U', 'lab', '-d', 'lab', '--csv', '-f', '-'];
+  const host = process.env.LAB_SSH;
+  const out = host
+    ? execFileSync('ssh', [host, psql.join(' ')], { encoding: 'utf8', input: query })
+    : execFileSync(psql[0]!, psql.slice(1), { encoding: 'utf8', input: query });
   const [header, ...lines] = out.trim().split('\n');
   if (!header) return [];
   const cols = header.split(',');

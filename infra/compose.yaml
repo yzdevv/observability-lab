@@ -162,6 +162,7 @@ services:
       OTEL_SERVICE_NAME: worker-node
       ORDER_RETENTION_HOURS: ${ORDER_RETENTION_HOURS:-6}   # the public demo keeps only recent orders
       CLEANUP_EVERY_MS: ${CLEANUP_EVERY_MS:-600000}
+      WORKER_WORK_MS: ${WORKER_WORK_MS:-20}   # simulated work per order; experiment 7 raises it
       LAB_IMPL: node
     depends_on:
       <<: *depends
@@ -198,6 +199,7 @@ services:
       OTEL_SERVICE_NAME: worker-go
       ORDER_RETENTION_HOURS: ${ORDER_RETENTION_HOURS:-6}   # the public demo keeps only recent orders
       CLEANUP_EVERY_MS: ${CLEANUP_EVERY_MS:-600000}
+      WORKER_WORK_MS: ${WORKER_WORK_MS:-20}   # simulated work per order; experiment 7 raises it
       MODE: worker
     depends_on:
       <<: *depends
