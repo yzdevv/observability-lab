@@ -104,11 +104,11 @@ homelab in F.
 
 **Done when:** live at `lab.mge.my.id` and linked from `dev.mge.my.id`.
 
-**Progress (2026-11-23):** deployed to the homelab with `scripts/deploy.sh` (inside the slice, 0.7
-GB idle), 29/29 contract tests pass there, demo runs re-recorded on the server, Jejak site and Kuma
-monitors created, config copied to the homelab repo, case study page written in the portfolio
-(not deployed yet). Left: NPM hosts and tunnel routes (user), deploy the portfolio, make the repo
-public. Experiments stay as measured on the Mac (same limits); a homelab re-run is optional.
+**Result (2026-11-23):** done. Live at `lab.mge.my.id` (tunnel) and `lab.home.arpa` (NPM), deployed
+with `scripts/deploy.sh` inside the lab slice (0.7 GB idle); 29/29 contract tests pass on the
+server; demo runs re-recorded there; Jejak site and six Kuma monitors; config in the homelab repo;
+case study at `dev.mge.my.id/observability-lab/`, linked from the portfolio's home page; repository
+public. Experiments remain the Mac measurements (same limits); a homelab re-run is optional.
 
 Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for a first case study.
 
@@ -116,7 +116,7 @@ Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for
 
 - [x] Gateway → order API → Postgres works for Node and Go
 - [x] Orders are processed asynchronously through Redis Streams
-- [ ] Docker Compose runs everything within the resource budget
+- [x] Docker Compose runs everything within the resource budget
 - [x] One trace ID links request and worker, in both languages
 - [x] Grafana shows traces, metrics and logs, linked by trace ID
 - [x] A slow query can be identified from the trace alone
@@ -124,5 +124,5 @@ Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for
 - [x] Baseline vs degraded, and Node vs Go, are compared with numbers
 - [x] Retry, timeout and recovery are observable
 - [x] The public demo is safe and rate-limited
-- [ ] Architecture diagram and case study are published
-- [ ] Benchmarks and trade-offs are documented
+- [x] Architecture diagram and case study are published
+- [x] Benchmarks and trade-offs are documented

@@ -80,8 +80,8 @@ no host ports, NPM proxy hosts for LAN names, the Cloudflare tunnel for the publ
    order"): created. lab-web's nginx answers the tracker paths with 404, so LAN visits are not
    counted.
 5. Uptime Kuma (created): #40 page, #41 gateway + order APIs, #42 Grafana (containers group);
-   #43 `lab.home.arpa`, #44 public `/api/health` keyword, #45 Jejak script (DNS + proxy group,
-   paused until steps 2 and 3 are done).
+   #43 `lab.home.arpa`, #44 public `/api/health` keyword, #45 Jejak script (DNS + proxy group).
+   All live since 2026-11-23.
 
 Data directories (`/opt/homelab/lab-data/observability-lab/*`, outside the nightly backup set) and
 the server `.env` are created by the deploy script; no sudo needed.

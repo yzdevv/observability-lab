@@ -68,4 +68,4 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 - [x] Milestone C — slow database visible in traces (experiment 1, baseline vs degraded, pool saturation under load)
 - [x] Milestone D — metrics, logs, dashboard, retry and circuit-breaker scenarios, experiments 2–6
 - [x] Milestone E — public demo page: own-trace waterfall, compare mode, live numbers, offline replay
-- [ ] Milestone F — deployment and case study (deployed on the homelab; public route pending)
+- [x] Milestone F — live at [lab.mge.my.id](https://lab.mge.my.id), case study at [dev.mge.my.id/observability-lab](https://dev.mge.my.id/observability-lab/)
