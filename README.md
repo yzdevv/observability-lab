@@ -7,6 +7,11 @@ same request and the same failure can be compared side by side. Instrumented wit
 (traces, metrics, logs), with controlled failure scenarios and a strict resource budget so it can
 run next to production services on a small home server.
 
+**Try it live at [lab.mge.my.id](https://lab.mge.my.id)**, or read the
+[case study](https://dev.mge.my.id/observability-lab/).
+
+![The demo page after one Go order with the slow-database scenario: the trace waterfall shows the INSERT taking 305 of the 329 ms the gateway needed to answer](docs/images/trace-slow-db.png)
+
 ```
 browser → gateway ─┬─ order-api-node → Postgres / Redis → stream → worker-node
                    └─ order-api-go   → Postgres / Redis → stream → worker-go
@@ -54,7 +59,8 @@ node scripts/trace-stats.ts --run /tmp/run                # which span the time 
 - **Telemetry isn't free:** the gateway's CPU limit and per-request access logs were found (and
   fixed) by measuring what each costs.
 
-Details and caveats (Mac numbers; the homelab re-run comes with deployment):
+Details and caveats (measured on a MacBook with the server's container limits; a re-run on the
+homelab is still open):
 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md#results).
 
 ## Docs
@@ -69,3 +75,7 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 - [x] Milestone D — metrics, logs, dashboard, retry and circuit-breaker scenarios, experiments 2–6
 - [x] Milestone E — public demo page: own-trace waterfall, compare mode, live numbers, offline replay
 - [x] Milestone F — live at [lab.mge.my.id](https://lab.mge.my.id), case study at [dev.mge.my.id/observability-lab](https://dev.mge.my.id/observability-lab/)
+
+## License
+
+[MIT](LICENSE)
