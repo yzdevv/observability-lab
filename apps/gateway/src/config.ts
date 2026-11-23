@@ -1,4 +1,4 @@
-import { availableParallelism } from 'node:os';
+import { cpus } from 'node:os';
 
 function num(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -32,7 +32,9 @@ export const config = {
   readLimitPerMin: num('READ_LIMIT_PER_MIN', 240),
   maxInflight: num('MAX_INFLIGHT', 20),
   // 1-minute host load average above which new work is refused. Default: half the host's threads.
-  maxLoad1: num('MAX_LOAD1', availableParallelism() / 2),
+  // os.cpus() lists the host's threads; availableParallelism() follows the container's CPU quota
+  // (1 for the gateway), which gave a threshold of 0.5.
+  maxLoad1: num('MAX_LOAD1', cpus().length / 2),
   maxBacklog: num('MAX_BACKLOG', 500),
 };
 
