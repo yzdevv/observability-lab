@@ -13,10 +13,10 @@ import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runti
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { registerCgroupMetrics } from './cgroup.ts';
 
-// Health checks run every few seconds; tracing them would bury the interesting traces.
-// Health checks, and the public page's read-only helpers: tracing a trace lookup would create a
-// new trace per lookup (and the page polls), which is noise in Tempo and in the span metrics.
-const UNTRACED_PATHS = new Set(['/healthz', '/api/lab/status', '/api/lab/stats']);
+// Health checks run every few seconds (Docker, Uptime Kuma, the page's live check); tracing them
+// would bury the interesting traces. The same goes for the public page's read-only helpers: a
+// traced trace lookup would create a new trace per lookup (and the page polls).
+const UNTRACED_PATHS = new Set(['/healthz', '/api/health', '/api/lab/status', '/api/lab/stats']);
 const untraced = (url = '') => {
   const path = url.split('?')[0] ?? '';
   return UNTRACED_PATHS.has(path) || path.startsWith('/api/traces/');
