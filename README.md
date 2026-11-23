@@ -58,9 +58,13 @@ node scripts/trace-stats.ts --run /tmp/run                # which span the time 
   per request, and starts in 0.23 s vs 5.5 s.
 - **Telemetry isn't free:** the gateway's CPU limit and per-request access logs were found (and
   fixed) by measuring what each costs.
+- **Queue backlog (on the homelab):** with a worker slowed to 5 orders a second, the gateway's
+  backlog guard held the queue at 500 and refused the rest, losing nothing. But 500 messages
+  meant every accepted order waited ~100 s: a queue limit should be set in seconds of waiting,
+  not in messages.
 
-Details and caveats (measured on a MacBook with the server's container limits; a re-run on the
-homelab is still open):
+Details and caveats (1–6 measured on a MacBook with the server's container limits, 7 on the
+homelab; re-running 1–6 on the homelab is still open):
 [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md#results).
 
 ## Docs
@@ -75,6 +79,7 @@ Design, contract, resource budget and experiments are in [`docs/`](docs/README.m
 - [x] Milestone D — metrics, logs, dashboard, retry and circuit-breaker scenarios, experiments 2–6
 - [x] Milestone E — public demo page: own-trace waterfall, compare mode, live numbers, offline replay
 - [x] Milestone F — live at [lab.mge.my.id](https://lab.mge.my.id), case study at [dev.mge.my.id/observability-lab](https://dev.mge.my.id/observability-lab/)
+- [x] Experiment 7 — queue backlog and load shedding, on the homelab
 
 ## License
 

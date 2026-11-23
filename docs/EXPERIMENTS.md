@@ -62,11 +62,12 @@ Rules for fair numbers:
 - **Method**: same traffic under different settings, CPU per request from the Docker API, 3 rounds.
 - **Added in Milestone D** after the first load tests came out far slower than Milestone C.
 
-### 7. Queue backlog and load shedding (not run yet)
+### 7. Queue backlog and load shedding
 - **Question**: what happens when producers outrun the worker?
-- **Method**: scale worker work time up, push traffic, watch backlog grow until the gateway's
-  backlog guard sheds load.
-- **Evidence**: backlog chart, `503 reason=backlog` rate, recovery time.
+- **Method**: scale worker work time up (`WORKER_WORK_MS`), push steady traffic, watch the backlog
+  grow until the gateway's backlog guard sheds load, then stop and time the drain.
+- **Evidence**: backlog chart, `503 reason=backlog` rate, how long accepted orders waited, recovery
+  time.
 
 ## Result template
 
@@ -406,6 +407,57 @@ App CPU = gateway + order API + worker + fake payment. "Refused" is out of ~1,60
   `monitoringPrecision: 5000`. That is the event-loop sampling interval, and every reading includes
   it, so the event-loop delay metric read ~5 s at idle. Now 10 ms: idle p50 ~11 ms (10 ms interval +
   <1 ms real delay). The dashboard subtracts the interval.
+
+### 7. Queue backlog and load shedding — 2026-11-23 (homelab)
+
+**Question:** what happens when orders arrive faster than the worker can finish them?
+**Setup:** on the homelab server (the first experiment run there), one implementation at a time.
+The worker's simulated work raised from 20 ms to 2,000 ms per order (it takes 10 orders at a time,
+so it finishes about 5 a second); 15 orders a second for 120 s through the gateway, scenario
+`none`; then no traffic until the queue is empty. The per-IP order limit was lifted for k6; the
+in-flight, host-load and backlog guards stayed on. k6 ran on the Mac over SSH, not through the
+public tunnel. Script and raw data: [`experiments/07-queue-backlog`](../experiments/07-queue-backlog/run.sh),
+[report](../experiments/07-queue-backlog/results/homelab-2026-11-23/report.md).
+
+![Backlog over time: both implementations climb at about 10 messages a second, flatten at the 500 limit from about 50 s while orders are refused, and drain in a straight line for about 105 s after the traffic stops](../experiments/07-queue-backlog/results/homelab-2026-11-23/backlog.svg)
+
+| | Node.js | Go |
+|---|---|---|
+| Offered | 1,801 (15/s × 120 s) | 1,801 |
+| Accepted (202) / refused (503) | 1,086 / 715 | 1,082 / 719 |
+| Backlog over the limit at | 49 s | 50 s |
+| Peak backlog | 515 | 516 |
+| Accepted per second, before / while capped | 15.0 / 4.8 | 14.7 / 4.8 |
+| Worker throughput | 4.9 per s | 5.0 per s |
+| Wait until done (`processed_at − created_at`), orders of the first second, p50 | 2.9 s | 4.0 s |
+| Wait until done while capped, p50 / p95 / max | 102 / 104 / 104 s | 101 / 103 / 104 s |
+| Time to drain after the traffic stopped | 103 s | 105 s |
+| Shed reasons | backlog only | backlog only |
+| Host load1, peak (guard at 4) | 1.10 | 1.10 |
+
+Every accepted order completed: no failures, nothing lost or stuck in the queue.
+
+**What we learned:**
+- **The guard does what it was built for.** The backlog grew at the expected rate (15 in, 5 out),
+  crossed 500 at ~50 s (500 / 10 per second), and from then on the gateway admitted exactly what
+  the worker could finish (4.8 a second) and refused the rest at once, with a clear message and
+  `Retry-After: 5` (p95 of all responses, accepted and refused, under 75 ms). Host load never passed 1.1, so the other sites on the
+  server didn't notice. After the traffic stopped, the queue drained without anyone touching it.
+- **A limit counted in messages is really a limit in waiting time, and it depends on the worker's
+  speed.** 500 messages at 5 a second meant every order accepted while capped waited ~100 s for
+  its result. At the normal 20 ms of work, the same 500 is about a second. The number that matters
+  to a user is the wait, so the guard should be "refuse when the estimated wait (backlog ÷ recent
+  completion rate) is over N seconds", or at least alert on the age of the oldest message.
+- **The overshoot is small**: the guard reads the backlog through a 1-second cache, so up to ~15
+  extra orders get in (peak 516 against 500). Cheaper than asking Redis on every request.
+- **Node.js and Go are identical here**, as they should be: the worker's sleep dominates, so this
+  tests the queue mechanics, not the language.
+
+**Trade-offs / follow-ups:**
+- A time-based limit needs a completion rate that is meaningful at low traffic; with almost no
+  orders it would swing wildly, so keep the count limit as a floor and add the time limit on top.
+- While a run is going, public visitors who pick the implementation under test get the same "queue
+  is backed up" answer. Each run takes about 4 minutes.
 
 ## Observations to follow up
 

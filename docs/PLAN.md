@@ -80,7 +80,7 @@ payment provider, timeout, circuit breaker) in both languages. Experiments 2–6
 efficiency, retries, breaker on/off, Node vs Go under load, and the cost of telemetry. That last one
 was added after the first load tests showed Milestone D's own telemetry and the gateway's 0.5 CPU
 limit hurting latency; both were fixed (access logs off, gateway 1 CPU). The queue-backlog
-experiment (7) is left for later.
+experiment (7) was run later, on the homelab (2026-11-23, see EXPERIMENTS.md).
 
 ### E — Public demo (3–4 days)
 - SPA: choose implementation (Node / Go / both), choose scenario, send, see own trace waterfall,
