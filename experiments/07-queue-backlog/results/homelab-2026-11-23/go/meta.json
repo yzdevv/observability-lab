@@ -1,0 +1,13 @@
+{
+  "impl": "go",
+  "scenario": "none",
+  "k6Env": "RATE=15 DURATION=120s WARMUP=0s BASE_URL=http://host.docker.internal:18088",
+  "k6Image": "grafana/k6:2.3.0",
+  "commit": "22509d4",
+  "started": "2026-11-23T07:52:32Z",
+  "ended": "2026-11-23T07:54:34Z",
+  "labStatusBefore": {"load1":0.44,"inflight":0,"backlog":{"node":0,"go":0},"limits":{"maxLoad1":4,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":1000000}},
+  "labStatusAfter": {"load1":1.01,"inflight":0,"backlog":{"node":0,"go":501},"limits":{"maxLoad1":4,"maxInflight":20,"maxBacklog":500,"rateLimitPerMin":1000000}},
+  "containerCpuBefore": {"at":"2026-11-23T07:52:32.711Z","cpuSeconds":{}},
+  "containerCpuAfter": {"at":"2026-11-23T07:54:35.317Z","cpuSeconds":{}}
+}

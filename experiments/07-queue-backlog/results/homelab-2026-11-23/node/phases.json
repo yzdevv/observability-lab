@@ -1,0 +1,2 @@
+{ "impl": "node", "workMs": 2000, "rate": 15, "duration": "120s",
+  "loadStart": 1795420115, "loadEnd": 1795420240, "drained": 1795420342 }

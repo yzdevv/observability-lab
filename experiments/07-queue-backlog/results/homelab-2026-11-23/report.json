@@ -1,0 +1,84 @@
+[
+ {
+  "impl": "node",
+  "phases": {
+   "impl": "node",
+   "workMs": 2000,
+   "rate": 15,
+   "duration": "120s",
+   "loadStart": 1795420115,
+   "loadEnd": 1795420240,
+   "drained": 1795420342
+  },
+  "limit": 500,
+  "requests": 1801,
+  "status": {
+   "202": 1086,
+   "503": 715
+  },
+  "capAtS": 48.89400005340576,
+  "maxLoad1": 1.1,
+  "maxBacklog": 515,
+  "acceptedBeforeCap": 14.991614496653197,
+  "acceptedWhileCapped": 4.811311495711579,
+  "workerRate": 4.909501526236305,
+  "waitFirst": {
+   "p50": 2934.2689514160156,
+   "max": 4541.566848754883
+  },
+  "waitCapped": {
+   "p50": 101974.4279384613,
+   "p95": 103863.25812339783,
+   "max": 104437.45398521423
+  },
+  "completed": 1086,
+  "failed": 0,
+  "queuedLeft": 0,
+  "shedByReason": {
+   "backlog": 743
+  },
+  "recoveryS": 102.89400005340576,
+  "loadS": 120
+ },
+ {
+  "impl": "go",
+  "phases": {
+   "impl": "go",
+   "workMs": 2000,
+   "rate": 15,
+   "duration": "120s",
+   "loadStart": 1795420352,
+   "loadEnd": 1795420475,
+   "drained": 1795420579
+  },
+  "limit": 500,
+  "requests": 1801,
+  "status": {
+   "202": 1082,
+   "503": 719
+  },
+  "capAtS": 50.055999994277954,
+  "maxLoad1": 1.1,
+  "maxBacklog": 516,
+  "acceptedBeforeCap": 14.663576795666966,
+  "acceptedWhileCapped": 4.837848658286361,
+  "workerRate": 5.004671025813477,
+  "waitFirst": {
+   "p50": 4001.7101764678955,
+   "max": 5783.611059188843
+  },
+  "waitCapped": {
+   "p50": 101263.9389038086,
+   "p95": 103113.30199241638,
+   "max": 103466.7100906372
+  },
+  "completed": 1082,
+  "failed": 0,
+  "queuedLeft": 0,
+  "shedByReason": {
+   "backlog": 735
+  },
+  "recoveryS": 105.05599999427795,
+  "loadS": 120
+ }
+]

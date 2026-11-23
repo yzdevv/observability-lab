@@ -1,0 +1,2 @@
+{ "impl": "go", "workMs": 2000, "rate": 15, "duration": "120s",
+  "loadStart": 1795420352, "loadEnd": 1795420475, "drained": 1795420579 }
