@@ -62,51 +62,66 @@ The Mac is arm64 and the server amd64, so images are built on the server, as for
 
 ## Homelab deployment
 
-Follows the homelab conventions: Compose project under `/opt/homelab/compose/<app>`, no host
-ports, NPM proxy host for LAN names, Cloudflare tunnel for the public name.
+Follows the homelab conventions: Compose project under `/opt/homelab/compose/observability-lab`,
+no host ports, NPM proxy hosts for LAN names, the Cloudflare tunnel for the public name.
 
-### One-time setup (user runs the sudo parts)
+### One-time setup
 
-1. Install the slice:
+1. Install the slice (sudo, user):
    ```sh
-   sudo cp infra/host/homelab-lab.slice /etc/systemd/system/
-   sudo systemctl daemon-reload
+   sudo cp homelab-lab.slice /etc/systemd/system/ && sudo systemctl daemon-reload
    ```
-2. Create bind-mount directories outside the backup set:
-   ```sh
-   sudo mkdir -p /opt/homelab/lab-data/observability-lab/{postgres,tempo,prometheus,loki,grafana}
-   sudo chown -R yzdev: /opt/homelab/lab-data/observability-lab
-   ```
-   (each service's directory is then chowned to that image's uid)
-3. NPM proxy hosts (user adds): `lab.home.arpa → lab-web:8080`, `grafana.home.arpa → grafana:3000`.
-4. Cloudflare tunnel route (user adds): `lab.mge.my.id → http://lab-web:8080`.
-5. Jejak site for `lab.mge.my.id` + tunnel path route for `/j.js` and `/e` → `jejak-collector:8081`,
-   above the lab-web catch-all.
-6. Kuma monitors: lab-web, gateway health, public keyword check, Grafana (LAN).
+   (`scripts/deploy.sh` refuses to run without it.)
+2. NPM proxy hosts (user): `lab.home.arpa → lab-web:8080`, `grafana.home.arpa → grafana:3000`.
+3. Cloudflare tunnel routes (user), in this order:
+   - `lab.mge.my.id`, path `^/(e|j\.js|j\.[0-9a-f]{10}\.js)$` → `http://jejak-collector:8081`
+   - `lab.mge.my.id` → `http://lab-web:8080`
+4. Jejak site "Observability Lab" (`7peh69j4`, events `send_order` and `outbound`, goal "Send
+   order"): created. lab-web's nginx answers the tracker paths with 404, so LAN visits are not
+   counted.
+5. Uptime Kuma (created): #40 page, #41 gateway + order APIs, #42 Grafana (containers group);
+   #43 `lab.home.arpa`, #44 public `/api/health` keyword, #45 Jejak script (DNS + proxy group,
+   paused until steps 2 and 3 are done).
+
+Data directories (`/opt/homelab/lab-data/observability-lab/*`, outside the nightly backup set) and
+the server `.env` are created by the deploy script; no sudo needed.
 
 ### Each deploy
 
-`scripts/deploy.sh` (to be written, modelled on Kelasin's):
+```sh
+scripts/deploy.sh          # asks if the working tree has uncommitted changes; --yes skips that
+```
 
-1. rsync the repo to `yzserver:/opt/homelab/compose/observability-lab` (excluding `node_modules`,
-   build output, local env files).
-2. On the server: validate the nginx config, then
-   `docker compose -f infra/compose.yaml -f infra/compose.homelab.yaml up -d --build`.
-3. Wait for health checks; print `systemd-cgtop`-style usage of the lab slice.
-4. Run the smoke script against the gateway through `lab-web`.
+1. Checks the slice, rsyncs the repo to the server (no `.git`, `node_modules`, results).
+2. Creates `.env` on first run (random DB password, `LAB_ENV=homelab`) and sets the Grafana admin
+   password from the Mac Keychain (`security find-generic-password -a admin -s
+   homelab-observability-grafana -w`), sent over stdin.
+3. Validates the nginx config, builds on the server (amd64), `up -d --wait`.
+4. Smoke-checks `/healthz` and `/api/health` through lab-web, prints the slice's usage.
 
-Secrets (`LAB_DB_PASSWORD`, Grafana admin password) live in a server-side `.env` (mode 600, not in
-git), written once by the user.
+### Testing the homelab copy from the Mac
+
+```sh
+scripts/homelab-tunnel.sh --relax   # SSH-forwards 8088/8090/3200/9090/3100/3000 to the lab
+./scripts/smoke.sh && pnpm test:contract
+node scripts/record-demo.ts --where "Homelab server (old laptop, Intel i5-8250U), Docker"
+```
+
+The tunnel uses the same loopback ports as the dev stack, so every script works unchanged.
+`--relax` lifts the per-IP order limit to 300/min while it is open (all tunnelled requests share
+one address) and puts it back on exit. First homelab run, 2026-11-23: 29/29 contract tests pass.
 
 ### Rollback
 
-`docker compose … down` stops only the lab; nothing else depends on it. Telemetry data can be
-deleted freely. Remove the slice file and tunnel route to fully undo.
+`docker compose -p observability-lab down` stops only the lab; nothing else depends on it.
+Telemetry data can be deleted freely. Remove the slice, NPM hosts, tunnel routes and Kuma
+monitors to fully undo.
 
 ### Homelab repo
 
-Copy the compose files and slice into the homelab config repo (`compose/observability-lab/`,
-`host/`) after the first deploy, and note the lab in the homelab notes.
+Copies of the compose files, nginx config and slice are in the homelab config repo
+(`compose/observability-lab/`, `host/systemd/homelab-lab.slice`). Refresh them after changing
+`infra/`.
 
 ## Operational notes
 

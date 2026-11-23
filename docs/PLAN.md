@@ -104,6 +104,12 @@ homelab in F.
 
 **Done when:** live at `lab.mge.my.id` and linked from `dev.mge.my.id`.
 
+**Progress (2026-11-23):** deployed to the homelab with `scripts/deploy.sh` (inside the slice, 0.7
+GB idle), 29/29 contract tests pass there, demo runs re-recorded on the server, Jejak site and Kuma
+monitors created, config copied to the homelab repo, case study page written in the portfolio
+(not deployed yet). Left: NPM hosts and tunnel routes (user), deploy the portfolio, make the repo
+public. Experiments stay as measured on the Mac (same limits); a homelab re-run is optional.
+
 Estimate: about 2–3 focused weeks. A–C (about a week) are already enough for a first case study.
 
 ## Definition of done (whole project)

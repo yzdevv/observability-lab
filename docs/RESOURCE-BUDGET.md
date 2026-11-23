@@ -111,7 +111,7 @@ telemetry ("load shedding" is itself part of the demo).
 | Per-visitor request cap in nginx (`lab-web`, all `/api/`) | 10 / s, burst 20, 10 connections | `429` |
 | Per-IP rate limit (`CF-Connecting-IP`) | 20 orders / minute; 240 reads / minute | `429` |
 | Global in-flight requests | 20 | `503 reason=inflight` |
-| Host load (`/proc/loadavg`, 1-min) | > half the host's threads (4.0 on the server) | `503 reason=host-load` |
+| Host load (`/proc/loadavg`, 1-min) | > half the host's threads (4.0 on the server; from `os.cpus()`, since `availableParallelism()` follows the container's CPU quota and gave 0.5) | `503 reason=host-load` |
 | Queue backlog (pending + lag of the chosen stream) | > 500 | `503 reason=backlog` |
 | Upstream timeout | 5 s | `504` |
 | Request body | 4 KB | `413` |
@@ -162,7 +162,9 @@ The nightly `homelab-backup` stops containers and tars every **named volume**. T
 
 ## Monitoring the budget
 
-- Uptime Kuma: lab web, gateway health, Grafana (LAN).
+- Uptime Kuma: lab web, gateway health, Grafana (LAN), plus the public and LAN names (#40–45).
+- On the server, 2026-11-23, idle: all 14 containers together use about 0.7 GB of the slice's
+  3 GB and around 1 % of a CPU (`systemctl status homelab-lab.slice`).
 - Grafana "Lab overview" dashboard: CPU used, CPU throttling and memory vs limit for the app services,
   from each service's own cgroup counters (`lab.cgroup.*`, no cAdvisor), plus the guard state.
 - Telegram alert if the lab is OOM-killed repeatedly (Kuma sees the service go down).
