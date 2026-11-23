@@ -128,8 +128,9 @@ export function App() {
         <section className="findings wrap" aria-labelledby="findings-title">
           <h2 id="findings-title">What the load tests showed</h2>
           <p className="section-lede">
-            Six experiments with k6, both implementations under the same CPU and memory limits.
-            Numbers are from a MacBook run; the full write-up has the method, the raw data and the caveats.
+            Seven experiments with k6, both implementations under the same CPU and memory limits.
+            The first six ran on a MacBook, the queue test on this server; the full write-up has the
+            method, the raw data and the caveats.
           </p>
           <div className="finding-grid">
             {FINDINGS.map((f) => (
