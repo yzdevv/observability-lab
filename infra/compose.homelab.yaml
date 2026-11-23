@@ -20,6 +20,9 @@ services:
   # (homelab). Nothing else in the lab joins those networks.
   lab-web:
     <<: *slice
+    build:
+      args:
+        VITE_JEJAK_SITE: ${JEJAK_SITE:-7peh69j4}   # Jejak site "Observability Lab"
     networks: [lab, public, homelab]
   otel-collector: *slice
   tempo:
@@ -37,8 +40,12 @@ services:
     volumes: !override
       - ./loki.yaml:/etc/loki/config.yaml:ro
       - /opt/homelab/lab-data/observability-lab/loki:/loki
+  # LAN-only admin tool: NPM reaches it as grafana.home.arpa over the homelab network.
   grafana:
     <<: *slice
+    networks: [lab, homelab]
+    environment:
+      GF_SERVER_ROOT_URL: http://grafana.home.arpa/
     volumes: !override
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - /opt/homelab/lab-data/observability-lab/grafana:/var/lib/grafana
