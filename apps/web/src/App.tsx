@@ -92,7 +92,16 @@ export function App() {
           </fieldset>
 
           <div className="send-row">
-            <button type="button" className="send" onClick={() => void send()} disabled={busy || mode === 'checking'}>
+            <button
+              type="button"
+              className="send"
+              onClick={() => void send()}
+              disabled={busy || mode === 'checking'}
+              data-jejak-event="send_order"
+              data-jejak-prop-impl={choice}
+              data-jejak-prop-scenario={scenario}
+              data-jejak-prop-mode={mode}
+            >
               {busy ? 'Sending…' : choice === 'both' ? 'Send to both' : `Send to ${IMPL_LABEL[choice]}`}
             </button>
             <p className="send-note">

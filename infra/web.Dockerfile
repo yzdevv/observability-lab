@@ -7,6 +7,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile --filter "@lab/web..."
 COPY apps/web apps/web
+# Jejak analytics site id; empty disables it (src/analytics.ts).
+ARG VITE_JEJAK_SITE=
+ENV VITE_JEJAK_SITE=$VITE_JEJAK_SITE
 RUN pnpm --filter @lab/web build
 
 FROM nginx:1.31-alpine
